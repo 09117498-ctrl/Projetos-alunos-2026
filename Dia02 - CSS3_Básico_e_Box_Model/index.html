@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTask - Meu Painel de Estudos</title>
+</head>
+<body>
+
+  <!-- CABEÇALHO DA APLICAÇÃO -->
+  <header>
+    <h1>DevTask 🚀</h1>
+    <p>Organize suas tarefas de programação e estudos</p>
+  </header>
+
+  <main>
+    <!-- FORMULÁRIO DE CADASTRO (Será o nosso CREATE no JS) -->
+    <section>
+      <h2>Nova Tarefa</h2>
+      <form id="form-tarefa">
+        <div>
+          <label for="titulo">Título da Tarefa:</label>
+          <input type="text" id="titulo" placeholder="Ex: Estudar Selectors em CSS" required>
+        </div>
+
+        <div>
+          <label for="categoria">Categoria:</label>
+          <select id="categoria">
+            <option value="HTML">HTML</option>
+            <option value="CSS">CSS</option>
+            <option value="JavaScript">JavaScript</option>
+          </select>
+        </div>
+
+        <button type="submit">Cadastrar Tarefa</button>
+      </form>
+    </section>
+
+    <hr>
+
+    <!-- ÁREA DE LISTAGEM DAS TAREFAS (Será o nosso READ, UPDATE e DELETE no JS) -->
+    <section>
+      <h2>Minhas Tarefas</h2>
+      
+      <!-- Lista temporária feita à mão para servir de modelo de estilo nos Dias 2 e 3 -->
+      <div id="lista-tarefas">
+        
+        <!-- Card Exemplo 1 -->
+        <article>
+          <h3>Aprender Tags Estruturais do HTML</h3>
+          <p><strong>Categoria:</strong> HTML</p>
+          <p><strong>Status:</strong> Pendente</p>
+          <button type="button">Concluir</button>
+          <button type="button">Excluir</button>
+        </article>
+
+        <!-- Card Exemplo 2 -->
+        <article>
+          <h3>Criar a Primeira Estrutura do Projeto</h3>
+          <p><strong>Categoria:</strong> HTML</p>
+          <p><strong>Status:</strong> Concluído</p>
+          <button type="button">Concluir</button>
+          <button type="button">Excluir</button>
+        </article>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Curso Técnico em Informática para Internet • Front-end 2026</p>
+  </footer>
+
+</body>
+</html>
