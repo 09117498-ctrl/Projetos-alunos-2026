@@ -1,0 +1,1541 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>A Árvore do Dom</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* LAYOUT: HQ em "páginas". Cada página é uma linha flex que quebra em painéis. A própria HQ é feita de flexbox. */
+:root{
+  --bg:#dce8f8;
+  --dot:rgba(20,24,58,.09);
+  --paper:#ffffff;
+  --ink:#14183a;
+  --muted:#44507a;
+  --line:#14183a;
+  --shadow:#14183a;
+  --blue:#3498db;
+  --blue-text:#17609a;
+  --pop:#ffd43b;
+  --pink:#ff6b81;
+  --green:#2fbf8a;
+  --wash1:#cfe6fb;
+  --wash2:#ffdfe5;
+  --wash3:#fff0b3;
+  --wash4:#d3f4e5;
+  --code-bg:#14183a;
+  --code-ink:#e8ecff;
+  --c-sel:#ff9fb0;
+  --c-prop:#ffd43b;
+  --c-val:#7cc4ff;
+  --c-com:#8e98d0;
+  --f-display:'Bangers','Impact','Arial Narrow Bold',sans-serif;
+  --f-body:'Comic Neue','Comic Sans MS','Chalkboard SE',sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1022; --dot:rgba(255,255,255,.06); --paper:#181c3a; --ink:#eef1ff; --muted:#b6bfe6;
+    --line:#d8def9; --shadow:#000; --blue-text:#86c8ff;
+    --wash1:#1d3a66; --wash2:#4b2742; --wash3:#4a4217; --wash4:#1a4a3b; --code-bg:#0a0c1c;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1022; --dot:rgba(255,255,255,.06); --paper:#181c3a; --ink:#eef1ff; --muted:#b6bfe6;
+  --line:#d8def9; --shadow:#000; --blue-text:#86c8ff;
+  --wash1:#1d3a66; --wash2:#4b2742; --wash3:#4a4217; --wash4:#1a4a3b; --code-bg:#0a0c1c;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+[id]{scroll-margin-top:16px}
+body{
+  background-color:var(--bg);
+  background-image:radial-gradient(var(--dot) 1.3px, transparent 1.7px);
+  background-size:16px 16px;
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:18px;
+  line-height:1.45;
+  padding-block:28px 72px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+h1,h2,h3{font-family:var(--f-display); font-weight:400; margin:0; text-wrap:balance; letter-spacing:.03em; line-height:1.05}
+p{margin:0}
+code{font-family:var(--f-mono); font-size:.8em; background:var(--wash1); color:var(--ink); border:1px solid var(--line); border-radius:4px; padding:1px 6px}
+a{color:var(--blue-text)}
+:focus-visible{outline:3px solid var(--pop); outline-offset:2px}
+.wrap{max-width:1080px; margin:0 auto; display:flex; flex-direction:column; gap:56px}
+
+/* ---------- capa ---------- */
+.cover{display:flex; flex-wrap:wrap; background:var(--paper); border:4px solid var(--line); box-shadow:8px 8px 0 var(--shadow); border-radius:6px}
+.cover-text{flex:1 1 380px; min-width:0; padding:28px; display:flex; flex-direction:column; gap:16px; align-items:flex-start}
+.cover h1{font-size:clamp(46px, 9vw, 92px); text-shadow:4px 4px 0 var(--blue)}
+.lead{font-size:20px; max-width:34em}
+.cover-art{flex:1 1 320px; min-width:0; background-color:var(--wash1); background-image:radial-gradient(var(--dot) 1.4px, transparent 1.8px); background-size:10px 10px; box-shadow:-4px -4px 0 0 var(--line); display:flex; align-items:flex-end; justify-content:center; gap:8px; padding:28px 18px 0; min-height:280px}
+.badge{display:inline-block; background:var(--pop); color:#14183a; border:3px solid #14183a; padding:3px 12px; transform:rotate(-2deg); font-family:var(--f-display); letter-spacing:.06em; font-size:20px; box-shadow:3px 3px 0 #14183a}
+.toc{display:flex; flex-wrap:wrap; gap:8px}
+.toc a{font-family:var(--f-mono); font-size:13px; font-weight:600; text-decoration:none; color:var(--ink); border:2px solid var(--line); border-radius:999px; padding:4px 12px; background:var(--paper)}
+.toc a:hover{background:var(--pop); color:#14183a}
+
+/* ---------- personagens ---------- */
+.chr{display:block; height:auto; flex:none}
+.w-lg{width:128px} .w-md{width:104px} .w-xl{width:156px}
+.tico{width:132px} .bia{width:108px} .tico.sm{width:112px}
+.cast{display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap}
+.cast-grid{display:flex; flex-wrap:wrap; gap:14px}
+.cast-card{flex:1 1 190px; min-width:0; background:var(--paper); border:3px solid var(--line); border-radius:6px; padding:14px; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; box-shadow:4px 4px 0 var(--shadow)}
+.cast-card h3{font-size:26px}
+.cast-card .chr{height:96px; width:auto}
+.cast-card p{font-size:16px; color:var(--muted)}
+.sec-title{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+.sec-title h2{font-size:38px}
+
+/* ---------- capítulos e painéis ---------- */
+.chapter{display:flex; flex-direction:column; gap:18px}
+.chap-head{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.chap-head h2{font-size:clamp(34px, 6vw, 50px)}
+.row{display:flex; flex-wrap:wrap; gap:18px; align-items:stretch}
+.panel{flex:1 1 300px; min-width:0; display:flex; flex-direction:column; background:var(--paper); border:4px solid var(--line); box-shadow:6px 6px 0 var(--shadow); border-radius:6px; overflow:hidden}
+.panel.wide{flex:2 1 460px}
+.cap{background:var(--pop); color:#14183a; border-bottom:4px solid var(--line); padding:10px 14px; font-weight:700; font-size:16px; line-height:1.35}
+.cap code{background:rgba(255,255,255,.6); color:#14183a; border-color:#14183a}
+.art{flex:1; min-width:0; display:flex; flex-direction:column; justify-content:flex-end; gap:12px; padding:18px; min-height:240px; background-color:var(--wash1); background-image:radial-gradient(var(--dot) 1.4px, transparent 1.8px); background-size:10px 10px}
+.art.w2{background-color:var(--wash2)}
+.art.w3{background-color:var(--wash3)}
+.art.w4{background-color:var(--wash4)}
+.split{display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end}
+.split > *{min-width:0}
+.split .grow{flex:1 1 220px; display:flex; flex-direction:column; gap:10px}
+.stack{display:flex; flex-direction:column; gap:6px}
+
+.bubble{position:relative; align-self:flex-start; max-width:min(100%, 340px); background:#fff; color:#14183a; border:3px solid #14183a; border-radius:18px; padding:10px 14px; font-weight:700; font-size:17px; line-height:1.3; margin-bottom:12px}
+.bubble::after{content:""; position:absolute; bottom:-12px; left:30px; width:18px; height:18px; background:#fff; border-right:3px solid #14183a; border-bottom:3px solid #14183a; transform:rotate(45deg)}
+.bubble.r{align-self:flex-end}
+.bubble.r::after{left:auto; right:30px}
+.bubble.shout{font-family:var(--f-display); font-weight:400; font-size:26px; letter-spacing:.04em}
+.bubble code{background:#e8eefc; color:#14183a; border-color:#14183a}
+.sfx{align-self:flex-end; font-family:var(--f-display); font-size:46px; line-height:1; color:var(--pink); -webkit-text-stroke:2px #14183a; paint-order:stroke fill; transform:rotate(-6deg); letter-spacing:.04em}
+.sfx.g{color:var(--green)} .sfx.y{color:var(--pop)}
+
+/* ---------- código ---------- */
+.code{margin:0; background:var(--code-bg); color:var(--code-ink); font-family:var(--f-mono); font-size:14px; line-height:1.6; padding:12px 14px; border-radius:6px; border:3px solid var(--line); overflow-x:auto; white-space:pre; min-width:0}
+.cs{color:var(--c-sel)} .cp{color:var(--c-prop)} .cv{color:var(--c-val)} .cc{color:var(--c-com)}
+.ln{display:block}
+.ln.in{padding-left:2ch}
+.ln.hl{background:rgba(255,212,59,.22); box-shadow:-14px 0 0 rgba(255,212,59,.22), 14px 0 0 rgba(255,212,59,.22)}
+.ln.dead{opacity:.45; text-decoration:line-through}
+.code.on{box-shadow:0 0 0 4px var(--green)}
+
+/* ---------- peças de desenho (mocks) ---------- */
+.mockform{display:flex; flex-direction:column; gap:8px}
+.mockform.row{flex-direction:row; align-items:flex-end}
+.fld{background:#fff; color:#14183a; border:2px dashed #14183a; border-radius:6px; padding:8px 10px; font-weight:700; font-size:14px}
+.mockform.row .fld{flex:1; min-width:0; text-align:center; padding-inline:4px}
+.fld.go{background:#2fbf8a; border-style:solid; text-align:center}
+.mockform.row .fld.go{flex:0 0 auto; padding-inline:8px}
+.mock-label{align-self:flex-start; font-family:var(--f-mono); font-size:12px; font-weight:600; background:#fff; color:#14183a; border:2px solid #14183a; border-radius:4px; padding:2px 8px}
+.phone{width:200px; max-width:100%; background:#f4f6fb; color:#14183a; border:3px solid #14183a; border-radius:14px; padding:10px}
+.mf-squish,.mf-wrap{display:flex; gap:6px}
+.mf-squish .fld{flex:1; min-width:0; font-size:11px; padding:6px 2px; word-break:break-all; text-align:center}
+.mf-wrap{flex-wrap:wrap}
+.mf-wrap .fld{flex:1; min-width:84px; font-size:12px; text-align:center}
+.mini-card{background:#fff; color:#14183a; border-left:5px solid #3498db; border-radius:6px; padding:10px 12px; font-weight:700; font-size:14px; display:flex; justify-content:space-between; align-items:center; gap:10px; border-top:2px solid #14183a; border-right:2px solid #14183a; border-bottom:2px solid #14183a}
+.mini-card.blk{display:block}
+.mini-card.blk .acoes{display:block; margin-top:8px}
+.mini-card.col{flex-direction:column; align-items:flex-start}
+.mini-card.col .acoes{width:100%; justify-content:flex-end}
+.mini-card .acoes{display:flex; gap:6px}
+.mini-card.nest .acoes{outline:3px dashed #ff6b81; outline-offset:3px; border-radius:4px}
+.mini-btn{font-style:normal; background:#2fbf8a; border:2px solid #14183a; border-radius:5px; padding:2px 8px; font-size:12px; display:inline-block}
+.mini-btn.del{background:#ff6b81}
+.pizza{width:150px; max-width:100%; aspect-ratio:1; border-radius:50%; border:4px solid #14183a; flex:none; box-shadow:0 0 0 9px #e0a645, 0 0 0 12px #14183a; margin:14px}
+.pizza.s{width:120px}
+.axes{background:#fff; color:#14183a; border:3px solid #14183a; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:10px; width:100%}
+.axes-label{font-weight:700; font-size:15px}
+.axes-label code{background:#e8eefc; color:#14183a; border-color:#14183a}
+.axes-mid{display:flex; gap:12px; align-items:stretch}
+.axes-box{flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:8px; border:3px dashed #3498db; border-radius:8px; padding:12px; min-height:128px}
+.axes-box .it{flex:1; min-width:0; font-size:14px}
+.ax{font-family:var(--f-mono); font-size:12px; font-weight:600; color:#14183a}
+.ax-main{display:flex; align-items:center; gap:8px}
+.ax-main i{flex:1; height:3px; background:#14183a; position:relative}
+.ax-main i::after{content:""; position:absolute; right:-2px; top:50%; transform:translateY(-50%); border-left:10px solid #14183a; border-top:6px solid transparent; border-bottom:6px solid transparent}
+.ax-cross{display:flex; flex-direction:column; align-items:center; gap:6px}
+.ax-cross span{writing-mode:vertical-rl}
+.ax-cross i{flex:1; width:3px; min-height:40px; background:#14183a; position:relative}
+.ax-cross i::after{content:""; position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); border-top:10px solid #14183a; border-left:6px solid transparent; border-right:6px solid transparent}
+
+/* itens coloridos (caixinhas) */
+.it{border:3px solid #14183a; border-radius:8px; font-weight:700; padding:8px 10px; text-align:center; color:#14183a; line-height:1.15}
+.c1{background:#3498db} .c2{background:#ff6b81} .c3{background:#2fbf8a} .c4{background:#ffd43b} .c5{background:#a99dff}
+
+/* ---------- laboratórios ---------- */
+.lab{background:var(--paper); border:4px solid var(--line); box-shadow:6px 6px 0 var(--shadow); border-radius:6px; overflow:hidden}
+.lab-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; background:var(--blue); color:#14183a; padding:10px 16px; border-bottom:4px solid var(--line)}
+.lab-head h3{font-size:30px; letter-spacing:.05em}
+.lab-head .hint{font-family:var(--f-mono); font-size:12px; font-weight:600}
+.lab-body{display:flex; flex-wrap:wrap; gap:20px; padding:18px}
+.lab-body.col{flex-direction:column}
+.lab-ctrl{flex:1 1 260px; min-width:0; display:flex; flex-direction:column; gap:14px}
+.lab-view{flex:2 1 340px; min-width:0; display:flex; flex-direction:column; gap:12px}
+fieldset{border:0; padding:0; margin:0; min-width:0}
+legend{font-family:var(--f-display); letter-spacing:.05em; font-size:20px; padding:0; margin-bottom:6px}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{position:relative; display:block}
+.chip input{position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer}
+.chip span{display:block; padding:5px 10px; border:2px solid var(--line); border-radius:999px; font-family:var(--f-mono); font-size:13px; font-weight:600; background:var(--paper); color:var(--ink)}
+.chip input:checked + span{background:var(--pop); color:#14183a; box-shadow:2px 2px 0 var(--line)}
+.chip input:focus-visible + span{outline:3px solid var(--blue); outline-offset:2px}
+.btn-ghost{font:inherit; font-weight:700; font-size:15px; padding:6px 14px; border:2px solid var(--line); border-radius:6px; background:var(--paper); color:var(--ink); box-shadow:2px 2px 0 var(--line); cursor:pointer; align-self:flex-start}
+.btn-ghost:hover{background:var(--pop); color:#14183a}
+.btn-ghost:active{transform:translate(2px,2px); box-shadow:none}
+.switch{display:flex; align-items:center; gap:10px; font-weight:700; cursor:pointer}
+.switch input{width:22px; height:22px; accent-color:var(--blue); flex:none}
+input[type=range]{width:100%; accent-color:var(--blue)}
+.range-row{display:flex; align-items:center; gap:10px}
+.range-row output{font-family:var(--f-mono); font-size:13px; font-weight:600; min-width:5ch; text-align:right}
+.tip{background:var(--wash3); color:var(--ink); border:2px solid var(--line); border-radius:6px; padding:8px 12px; font-size:16px}
+.stage-box{border:3px solid var(--line); border-radius:8px; background-color:var(--wash1); background-image:radial-gradient(var(--dot) 1.4px, transparent 1.8px); background-size:10px 10px; padding:8px; overflow:hidden}
+.stage{display:flex; height:260px; max-width:100%; border:3px dashed var(--blue); border-radius:6px; padding:6px; transition:width .25s}
+.stage .it{flex:0 1 84px}
+.stage.col .it{flex:0 0 auto; width:84px}
+.i1{padding-block:6px} .i2{padding-block:20px} .i3{padding-block:11px} .i4{padding-block:16px} .i5{padding-block:8px}
+.demo-card{background:#fff; color:#14183a; border-left:5px solid #3498db; border-radius:6px; padding:15px 20px; min-height:130px; border:2px solid #14183a; border-left-width:5px; gap:12px}
+.demo-card strong{display:block}
+.demo-card small{font-size:14px; color:#44507a}
+.demo-card .acoes{gap:8px}
+.btn{font:inherit; font-weight:700; font-size:14px; border:2px solid #14183a; border-radius:6px; padding:6px 12px; background:#2fbf8a; color:#14183a; cursor:default}
+.btn.del{background:#ff6b81}
+.fbox-row{display:flex; gap:10px; height:120px}
+.fbox{min-width:0; border:3px solid #14183a; border-radius:8px; color:#14183a; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; overflow:hidden; transition:flex .2s, width .2s}
+.fbox b{font-family:var(--f-display); font-weight:400; font-size:30px; line-height:1}
+.fbox small{font-family:var(--f-mono); font-size:11px; font-weight:600}
+.pizza-row{display:flex; flex-wrap:wrap; align-items:center; gap:10px 22px}
+.pizza-legend{flex:1 1 200px; min-width:0; font-weight:700}
+
+/* simulador de telas */
+.sim-outer{display:flex; justify-content:center; padding:16px; border:3px dashed var(--line); border-radius:8px; background-color:var(--wash1); background-image:radial-gradient(var(--dot) 1.4px, transparent 1.8px); background-size:10px 10px; min-width:0}
+.sim-frame{container-type:inline-size; container-name:tela; flex:none; max-width:100%; background:#f4f6fb; color:#14183a; border-radius:10px; box-shadow:0 0 0 3px #14183a, 6px 6px 0 3px #14183a; transition:width .2s}
+.sim-app{padding:16px; display:flex; flex-direction:column; gap:16px}
+.sim-frame form{display:flex; gap:15px; align-items:flex-end; flex-wrap:wrap; margin:0}
+.sim-frame form > div{flex:1; min-width:200px; display:flex; flex-direction:column; gap:4px}
+.sim-frame label{font-weight:700; font-size:14px}
+.sim-frame input[type=text],.sim-frame input[type=date]{padding:8px 10px; border:2px solid #14183a; border-radius:6px; font:inherit; font-size:15px; width:100%; min-width:0; background:#fff; color:#14183a}
+.sim-frame .lista{display:flex; flex-direction:column; gap:15px}
+.sim-frame article{background:#fff; border-left:5px solid #3498db; padding:15px 20px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 0 rgba(20,24,58,.2)}
+.sim-frame article strong{display:block}
+.sim-frame article small{color:#44507a; font-size:14px}
+.sim-frame article .acoes{display:flex; gap:8px}
+@container tela (max-width: 600px){
+  .sim-frame:not(.sem-mq) form{flex-direction:column; align-items:stretch}
+  .sim-frame:not(.sem-mq) article{flex-direction:column; align-items:flex-start; gap:12px}
+  .sim-frame:not(.sem-mq) article .acoes{width:100%; justify-content:flex-end}
+}
+.sim-bar{display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px}
+.sim-bar .range-row{flex:1 1 280px}
+.sim-bar output{font-weight:700}
+
+/* ---------- missão final ---------- */
+.sheet{display:flex; flex-wrap:wrap; gap:14px}
+.sheet-card{flex:1 1 240px; min-width:0; background:var(--paper); border:3px solid var(--line); border-radius:6px; padding:12px 14px; box-shadow:4px 4px 0 var(--shadow); display:flex; flex-direction:column; gap:6px}
+.sheet-card h3{font-size:24px; color:var(--blue-text)}
+.sheet-card p{font-size:16px}
+.quest{flex:1 1 380px; min-width:0; background:var(--paper); border:3px solid var(--line); border-radius:6px; padding:12px 14px; box-shadow:4px 4px 0 var(--shadow)}
+.quest summary{cursor:pointer; font-weight:700}
+.quest .ans{margin-top:10px; padding-top:10px; border-top:2px dashed var(--line); font-size:17px; display:flex; flex-direction:column; gap:8px}
+.teacher{background:var(--wash4); border:4px solid var(--line); border-radius:6px; padding:18px 20px; box-shadow:6px 6px 0 var(--shadow); display:flex; flex-direction:column; gap:10px}
+.teacher h2{font-size:34px}
+.teacher ul{margin:0; padding-left:1.2em; display:flex; flex-direction:column; gap:6px}
+.foot{font-size:15px; color:var(--muted); text-align:center}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .stage,.fbox,.sim-frame{transition:none}
+}
+
+/* ===== Volume 2: DOM e eventos ===== */
+.browser{background:#f4f6fb; color:#14183a; border:3px solid #14183a; border-radius:10px; overflow:hidden; min-width:0}
+.browser-bar{display:flex; align-items:center; gap:6px; background:#14183a; color:#e8ecff; padding:6px 10px; font-family:var(--f-mono); font-size:12px}
+.browser-bar i{width:10px; height:10px; border-radius:50%; background:#ff6b81; flex:none}
+.browser-bar i:nth-child(2){background:#ffd43b}
+.browser-bar i:nth-child(3){background:#2fbf8a}
+.browser-bar span{margin-left:8px; background:#2b3160; border-radius:4px; padding:1px 8px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.browser-body{padding:12px; position:relative}
+.hit{outline:4px solid #ff6b81; outline-offset:2px; box-shadow:0 0 0 7px rgba(255,107,129,.35)}
+.reload-flash{position:absolute; inset:0; background:#fff; color:#14183a; display:flex; align-items:center; justify-content:center; font-family:var(--f-display); font-size:30px; letter-spacing:.05em; opacity:0; pointer-events:none; transition:opacity .15s}
+.reloading .reload-flash{opacity:.96}
+.statusline{font-family:var(--f-mono); font-size:13px; font-weight:600}
+
+.console{margin:0; background:#0a0c1c; color:#e8ecff; font-family:var(--f-mono); font-size:13px; line-height:1.6; padding:10px 12px; border-radius:6px; border:3px solid var(--line); white-space:pre-wrap; overflow-wrap:anywhere; min-width:0}
+.console .in{color:#ffd43b}
+.console .err{color:#ff9fb0}
+.console .ok{color:#7be0b8}
+.console .dim{color:#8e98d0}
+
+.tree{list-style:none; margin:0; padding:0; font-family:var(--f-mono); font-size:12.5px}
+.tree ul{list-style:none; margin:0; padding-left:16px}
+.tree li{position:relative; padding:3px 0 3px 14px}
+.tree li::before{content:""; position:absolute; left:0; top:0; bottom:0; border-left:2px solid var(--line); opacity:.45}
+.tree li::after{content:""; position:absolute; left:0; top:15px; width:10px; border-top:2px solid var(--line); opacity:.45}
+.tree li:last-child::before{bottom:auto; height:15px}
+.tree > li{padding-left:0}
+.tree > li::before,.tree > li::after{display:none}
+.tree .tag{display:inline-block; padding:1px 7px; border:2px solid var(--line); border-radius:6px; background:var(--paper); color:var(--ink); white-space:nowrap}
+.tree .tag.hit{background:var(--pop); color:#14183a; outline:none; box-shadow:2px 2px 0 var(--line)}
+.treewrap{overflow-x:auto; min-width:0; border:3px solid var(--line); border-radius:8px; padding:10px; background:var(--paper)}
+#mock{display:flex; flex-direction:column; gap:12px}
+#mock form{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin:0}
+#mock form > div{flex:1; min-width:120px; display:flex; flex-direction:column; gap:3px}
+#mock label{font-weight:700; font-size:13px}
+#mock input,#mock select{padding:6px 8px; border:2px solid #14183a; border-radius:6px; font:inherit; font-size:14px; width:100%; min-width:0; background:#fff; color:#14183a}
+#mock button{font:inherit; font-weight:700; font-size:13px; border:2px solid #14183a; border-radius:6px; padding:5px 10px; background:#2fbf8a; color:#14183a; cursor:default}
+#mock .btn-excluir{background:#ff6b81}
+#mock article{background:#fff; border-left:5px solid #3498db; padding:10px 14px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; border-top:2px solid #14183a; border-right:2px solid #14183a; border-bottom:2px solid #14183a}
+#mock h3{font-family:var(--f-body); font-weight:700; font-size:16px; letter-spacing:0; margin:0}
+#mock .acoes{display:flex; gap:6px}
+
+.dt form{display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin:0}
+.dt form > div{flex:1; min-width:140px; display:flex; flex-direction:column; gap:4px}
+.dt label{font-weight:700; font-size:14px}
+.dt input[type=text],.dt select{padding:8px 10px; border:2px solid #14183a; border-radius:6px; font:inherit; font-size:15px; width:100%; min-width:0; background:#fff; color:#14183a}
+.dt .btn{cursor:pointer}
+.dt .lista{display:flex; flex-direction:column; gap:12px; margin-top:14px}
+.dt article{background:#fff; border-left:5px solid #3498db; padding:12px 16px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; box-shadow:0 1px 0 rgba(20,24,58,.2); animation:pop .25s ease-out}
+.dt article h3{font-family:var(--f-body); font-weight:700; font-size:17px; letter-spacing:0; margin:0; overflow-wrap:anywhere}
+.dt article p{margin:0; font-size:14px}
+.dt .acoes{display:flex; gap:8px}
+.dt .btn-concluir,.dt .btn-excluir{font:inherit; font-weight:700; font-size:14px; border:2px solid #14183a; border-radius:6px; padding:5px 10px; background:#2fbf8a; color:#14183a}
+.dt .btn-excluir{background:#ff6b81}
+.dt-msg{margin:8px 0 0; min-height:1.4em; color:#b3203a; font-weight:700; font-size:15px}
+@keyframes pop{from{transform:scale(.92); opacity:0}}
+
+.stepcard{border:3px solid var(--line); border-radius:6px; padding:8px 12px; background:var(--code-bg); color:var(--code-ink); transition:box-shadow .15s}
+.stepcard h4{font-family:var(--f-display); font-weight:400; margin:0 0 4px; letter-spacing:.05em; color:#ffd43b; font-size:18px}
+.stepcard pre{margin:0; font-family:var(--f-mono); font-size:12.5px; line-height:1.55; overflow-x:auto; white-space:pre}
+.stepcard.on{box-shadow:0 0 0 4px var(--green)}
+.stepcard.bad{box-shadow:0 0 0 4px var(--pink)}
+.steps{display:flex; flex-direction:column; gap:10px; min-width:0}
+
+.tx-row{display:flex; flex-wrap:wrap; gap:12px}
+.tx-box{flex:1 1 220px; min-width:0; border:3px solid var(--line); border-radius:8px; overflow:hidden; background:var(--paper)}
+.tx-box h4{margin:0; padding:6px 10px; background:var(--pop); color:#14183a; border-bottom:3px solid var(--line); font-family:var(--f-mono); font-size:13px}
+.tx-out{padding:12px; min-height:64px; overflow-wrap:anywhere; background:#fff; color:#14183a}
+.tx-in{width:100%; padding:8px 10px; border:3px solid var(--line); border-radius:6px; font-family:var(--f-mono); font-size:14px; background:var(--paper); color:var(--ink)}
+
+.bugs{display:flex; flex-direction:column; border:3px solid var(--line); border-radius:6px; overflow-x:auto; background:var(--code-bg); min-width:0}
+.bl{display:flex; gap:12px; text-align:left; width:max-content; min-width:100%; font-family:var(--f-mono); font-size:13.5px; line-height:1.5; color:var(--code-ink); background:transparent; border:0; border-bottom:1px solid rgba(255,255,255,.08); padding:4px 12px; cursor:pointer; white-space:pre}
+.bl .n{color:var(--c-com); flex:none; width:2ch; text-align:right; user-select:none}
+.bl:hover{background:rgba(255,255,255,.08)}
+.bl[aria-pressed=true]{background:rgba(255,212,59,.25)}
+.bl.found{background:rgba(47,191,138,.35)}
+.bl.miss{background:rgba(255,107,129,.35)}
+.bl.fp{background:rgba(142,152,208,.25); text-decoration:line-through}
+.bug-res{display:flex; flex-direction:column; gap:8px}
+.bug-item{border:3px solid var(--line); border-radius:6px; padding:8px 12px; background:var(--paper); font-size:16px}
+.bug-item.ok{border-color:var(--green)}
+.bug-item.no{border-color:var(--pink)}
+.bug-item b{font-family:var(--f-display); font-weight:400; font-size:20px; letter-spacing:.04em}
+.score{font-family:var(--f-display); font-size:30px; letter-spacing:.05em}
+.sched{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px}
+.sched li{display:flex; gap:12px; flex-wrap:wrap}
+.sched b{font-family:var(--f-mono); font-size:14px; flex:none; min-width:12ch}
+.sched span{flex:1 1 240px; min-width:0}
+.ans pre.code{margin:0}
+@media (prefers-reduced-motion: reduce){ .dt article{animation:none} .reload-flash,.stepcard{transition:none} }
+
+
+/* ===== Revisão: A Árvore do Dom ===== */
+.legend-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.legend-row .it{flex:0 0 120px; font-size:14px}
+.legend-row .t{flex:1 1 160px; min-width:0; background:#fff; color:#14183a; border:2px solid #14183a; border-radius:8px; padding:4px 8px; font-size:15px; font-weight:700; line-height:1.25}
+.flow{display:flex; flex-wrap:wrap; align-items:stretch; gap:8px}
+.flow .it{flex:1 1 120px; font-size:14px; display:flex; flex-direction:column; justify-content:center; gap:2px; min-width:0}
+.flow .ar{align-self:center; font-family:var(--f-display); font-size:30px; color:#14183a; line-height:1}
+.flow small{font-weight:400; font-size:12px}
+.gloss{display:flex; flex-wrap:wrap; gap:12px}
+.term{flex:1 1 230px; min-width:0; background:var(--paper); border:3px solid var(--line); border-radius:6px; padding:8px 12px; box-shadow:3px 3px 0 var(--shadow)}
+.term h4{margin:0; font-family:var(--f-display); font-weight:400; font-size:24px; letter-spacing:.04em; color:var(--blue-text)}
+.term .en{font-family:var(--f-mono); font-size:12px; color:var(--muted)}
+.term p{font-size:15px; line-height:1.3; margin-top:2px}
+
+button.tag{font:inherit; font-family:var(--f-mono); font-size:12.5px; cursor:pointer}
+.tree .tag.txt{border-style:dashed; font-style:italic}
+.tree .tag.doc{background:var(--pop); color:#14183a}
+.tree .tag.sel{background:var(--blue); color:#14183a; box-shadow:2px 2px 0 var(--line)}
+.tree .tag.rp{box-shadow:0 0 0 3px #ff6b81}
+.tree .tag.rc{box-shadow:0 0 0 3px #2fbf8a}
+.tree .tag.rs{box-shadow:0 0 0 3px #ffd43b}
+.tree .tag.good{background:var(--green); color:#14183a}
+.tree .tag.bad{background:var(--pink); color:#14183a}
+.treewrap.tall{max-height:420px; overflow:auto}
+.key{display:flex; flex-wrap:wrap; gap:8px 14px; font-size:14px; font-weight:700}
+.key span::before{content:""; display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; border:2px solid var(--line)}
+.key .k-sel::before{background:var(--blue)} .key .k-p::before{background:#ff6b81} .key .k-c::before{background:#2fbf8a} .key .k-s::before{background:#ffd43b}
+.kv{display:flex; flex-direction:column; gap:6px; min-width:0}
+.kv > div{display:flex; gap:10px; flex-wrap:wrap; border-bottom:2px dashed var(--line); padding-bottom:5px}
+.kv b{flex:0 0 130px; font-family:var(--f-display); font-weight:400; letter-spacing:.04em; font-size:19px}
+.kv span{flex:1 1 150px; min-width:0; overflow-wrap:anywhere; font-size:16px}
+
+.fx-page{background:#fff; color:#14183a; border:2px solid #14183a; border-radius:6px; padding:12px; min-height:120px}
+.fx-page h1{font-family:var(--f-body); font-weight:700; font-size:22px; letter-spacing:0; margin:0 0 6px}
+.fx-page ul{margin:0; padding-left:1.2em}
+.badge-no{background:var(--wash1); border:2px solid var(--line); border-radius:6px; padding:6px 10px; font-size:15px}
+
+.exercise{border:3px solid var(--line); border-radius:6px; padding:12px; background:var(--paper); display:flex; flex-direction:column; gap:8px; min-width:0}
+.exercise h4{margin:0; font-family:var(--f-display); font-weight:400; font-size:22px; letter-spacing:.04em}
+.exercise .code{white-space:pre-wrap}
+select.blank{font-family:var(--f-mono); font-size:13px; padding:1px 4px; border-radius:4px; border:2px solid var(--c-prop); background:#262b57; color:#fff; max-width:100%}
+select.blank.ok{border-color:#2fbf8a; background:#16513f}
+select.blank.no{border-color:#ff6b81; background:#5a2030}
+.fillfb{font-weight:700; font-size:16px; min-height:1.3em}
+.ord{display:flex; flex-direction:column; gap:6px; min-width:0}
+.ord-item{display:flex; gap:8px; align-items:center; background:var(--code-bg); color:var(--code-ink); border:3px solid var(--line); border-radius:6px; padding:4px 8px; font-family:var(--f-mono); font-size:13px; min-width:0}
+.ord-item .tx{flex:1; min-width:0; white-space:pre; overflow-x:auto}
+.ord-item.bad{border-color:#ff6b81}
+.ord-item.good{border-color:#2fbf8a}
+.mv{font:inherit; font-size:14px; font-weight:700; width:32px; height:28px; border:2px solid var(--line); border-radius:6px; background:var(--pop); color:#14183a; cursor:pointer; padding:0}
+.mv:disabled{opacity:.35; cursor:default}
+.qcount{font-family:var(--f-mono); font-size:13px; font-weight:600; color:var(--muted)}
+.qtext{font-size:19px; font-weight:700; margin:4px 0 10px}
+.qtext code{font-size:.8em}
+.opts{display:flex; flex-direction:column; gap:8px}
+.opt{text-align:left; font:inherit; font-size:17px; padding:8px 12px; border:3px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); cursor:pointer}
+.opt:hover:not(:disabled){background:var(--wash3)}
+.opt.ok{background:var(--green); color:#14183a}
+.opt.no{background:var(--pink); color:#14183a}
+.opt:disabled{cursor:default}
+.qfb{margin-top:10px; min-height:1.4em; font-size:17px}
+.score{font-family:var(--f-display); font-size:30px; letter-spacing:.05em}
+
+.challenge{flex:1 1 100%; min-width:0; background:var(--paper); border:3px solid var(--line); border-radius:6px; padding:14px; box-shadow:4px 4px 0 var(--shadow); display:flex; flex-direction:column; gap:10px}
+.challenge h3{font-size:28px}
+.challenge details{border-top:2px dashed var(--line); padding-top:8px}
+.challenge summary{cursor:pointer; font-weight:700}
+.challenge details .code{margin-top:8px}
+.cols2{display:flex; flex-wrap:wrap; gap:10px}
+.cols2 > *{flex:1 1 280px; min-width:0}
+
+.acts{display:flex; flex-wrap:wrap; gap:18px}
+.act{flex:1 1 360px; min-width:0; background:var(--paper); border:4px solid var(--line); border-radius:6px; box-shadow:6px 6px 0 var(--shadow); display:flex; flex-direction:column; overflow:hidden}
+.act h3{background:var(--pop); color:#14183a; padding:6px 14px; font-size:25px; border-bottom:4px solid var(--line)}
+.act-body{padding:14px; display:flex; flex-direction:column; gap:12px; min-width:0}
+.act-body > p{font-size:16px}
+.stagebox{background:#f4f6fb; color:#14183a; border:3px solid #14183a; border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:10px; min-height:96px; align-items:flex-start; min-width:0}
+.stagebox input{padding:7px 10px; border:2px solid #14183a; border-radius:6px; font:inherit; font-size:15px; width:100%; min-width:0; background:#fff; color:#14183a}
+.stagebox input:disabled{background:#d9deea; color:#6a7390}
+.btnrow{display:flex; flex-wrap:wrap; gap:8px}
+.readout{font-family:var(--f-mono); font-size:12.5px; background:var(--code-bg); color:var(--code-ink); border-radius:6px; border:2px solid var(--line); padding:6px 10px; overflow-wrap:anywhere; min-height:2em}
+.a-h{font-family:var(--f-display); font-weight:400; font-size:30px; margin:0; letter-spacing:.03em}
+.a3-card{border:3px solid #14183a; padding:10px 14px; border-radius:6px; background:#fff; transition:all .2s; font-weight:700}
+.a3-card.destaque{background:#ffd43b; transform:rotate(-2deg)}
+.a3-card.grande{font-size:26px}
+.a6-out{font-weight:700; font-size:18px; margin:0}
+.a6-count{font-family:var(--f-mono); font-size:13px}
+.a6-count.erro{color:#b3203a; font-weight:700}
+#a7-lista{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; width:100%}
+#a7-lista li{display:flex; justify-content:space-between; align-items:center; gap:8px; background:#fff; border:2px solid #14183a; border-radius:6px; padding:4px 8px}
+#a7-lista button{font:inherit; font-weight:700; font-size:13px; border:2px solid #14183a; border-radius:5px; background:#ff6b81; color:#14183a; cursor:pointer; padding:0 8px}
+.a8-fruta{display:inline-block; border:2px solid #14183a; border-radius:999px; padding:3px 12px; background:#fff; font-weight:700; margin:0 6px 6px 0}
+@media (prefers-reduced-motion: reduce){ .a3-card{transition:none} }
+
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- Dona Flex -->
+    <symbol id="s-flex" viewBox="0 0 120 150">
+      <path d="M24 52 L4 138 Q60 150 116 138 L96 52 Z" fill="#ff6b81" stroke="#14183a" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M46 118 V138 M74 118 V138" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <rect x="26" y="34" width="68" height="86" rx="12" fill="#3498db" stroke="#14183a" stroke-width="3"/>
+      <rect x="34" y="42" width="52" height="70" rx="8" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 5"/>
+      <path d="M26 74 L8 96" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M94 70 L112 46" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="7" cy="97" r="5" fill="#ffd43b" stroke="#14183a" stroke-width="2.5"/>
+      <circle cx="113" cy="44" r="5" fill="#ffd43b" stroke="#14183a" stroke-width="2.5"/>
+      <rect x="36" y="56" width="48" height="20" rx="10" fill="#ffd43b" stroke="#14183a" stroke-width="3"/>
+      <circle cx="50" cy="66" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="70" cy="66" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="51" cy="67" r="2.2" fill="#14183a"/><circle cx="71" cy="67" r="2.2" fill="#14183a"/>
+      <path d="M48 90 Q60 104 72 90" fill="none" stroke="#14183a" stroke-width="3.5" stroke-linecap="round"/>
+    </symbol>
+    <!-- Sr. Block -->
+    <symbol id="s-block" viewBox="0 0 120 150">
+      <path d="M44 122 V142 M76 122 V142" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <rect x="18" y="16" width="84" height="106" rx="4" fill="#9aa3b8" stroke="#14183a" stroke-width="3"/>
+      <rect x="28" y="4" width="64" height="14" rx="3" fill="#5a6278" stroke="#14183a" stroke-width="3"/>
+      <path d="M32 44 L54 54 M88 44 L66 54" stroke="#14183a" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="44" cy="64" r="6" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="76" cy="64" r="6" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="46" cy="66" r="2.4" fill="#14183a"/><circle cx="74" cy="66" r="2.4" fill="#14183a"/>
+      <path d="M40 90 Q60 78 80 90 Q60 100 40 90 Z" fill="#14183a"/>
+      <path d="M46 108 Q60 98 74 108" fill="none" stroke="#14183a" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M18 80 Q2 92 24 102 M102 80 Q118 92 96 102" fill="none" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+    </symbol>
+    <!-- Tico (card) feliz e triste -->
+    <symbol id="s-tico" viewBox="0 0 120 76">
+      <rect x="4" y="6" width="112" height="62" rx="8" fill="#fff" stroke="#14183a" stroke-width="3"/>
+      <path d="M4 14 a8 8 0 0 1 8 -8 h4 v62 h-4 a8 8 0 0 1 -8 -8 z" fill="#3498db" stroke="#14183a" stroke-width="3"/>
+      <circle cx="52" cy="30" r="6.5" fill="#fff" stroke="#14183a" stroke-width="2.5"/>
+      <circle cx="82" cy="30" r="6.5" fill="#fff" stroke="#14183a" stroke-width="2.5"/>
+      <circle cx="53" cy="31" r="2.6" fill="#14183a"/><circle cx="83" cy="31" r="2.6" fill="#14183a"/>
+      <path d="M56 46 Q67 58 78 46" fill="none" stroke="#14183a" stroke-width="3.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="s-tico-sad" viewBox="0 0 120 76">
+      <rect x="4" y="6" width="112" height="62" rx="8" fill="#fff" stroke="#14183a" stroke-width="3"/>
+      <path d="M4 14 a8 8 0 0 1 8 -8 h4 v62 h-4 a8 8 0 0 1 -8 -8 z" fill="#3498db" stroke="#14183a" stroke-width="3"/>
+      <circle cx="52" cy="30" r="6.5" fill="#fff" stroke="#14183a" stroke-width="2.5"/>
+      <circle cx="82" cy="30" r="6.5" fill="#fff" stroke="#14183a" stroke-width="2.5"/>
+      <circle cx="53" cy="33" r="2.6" fill="#14183a"/><circle cx="83" cy="33" r="2.6" fill="#14183a"/>
+      <path d="M56 54 Q67 44 78 54" fill="none" stroke="#14183a" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M96 38 q-5 8 0 11 q5 -3 0 -11 z" fill="#7cc4ff" stroke="#14183a" stroke-width="2"/>
+    </symbol>
+    <!-- Bia (botão) -->
+    <symbol id="s-bia" viewBox="0 0 110 50">
+      <rect x="3" y="3" width="104" height="44" rx="22" fill="#2fbf8a" stroke="#14183a" stroke-width="3"/>
+      <circle cx="40" cy="20" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="70" cy="20" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="41" cy="21" r="2.2" fill="#14183a"/><circle cx="71" cy="21" r="2.2" fill="#14183a"/>
+      <path d="M46 31 Q55 40 64 31" fill="none" stroke="#14183a" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="s-bia-sad" viewBox="0 0 110 50">
+      <rect x="3" y="3" width="104" height="44" rx="22" fill="#2fbf8a" stroke="#14183a" stroke-width="3"/>
+      <circle cx="40" cy="20" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="70" cy="20" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="41" cy="23" r="2.2" fill="#14183a"/><circle cx="71" cy="23" r="2.2" fill="#14183a"/>
+      <path d="M46 39 Q55 30 64 39" fill="none" stroke="#14183a" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <!-- Guarda Media -->
+    <symbol id="s-guarda" viewBox="0 0 120 150">
+      <path d="M46 122 V142 M74 122 V142" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <rect x="26" y="34" width="68" height="88" rx="10" fill="#6c5ce7" stroke="#14183a" stroke-width="3"/>
+      <path d="M94 72 L113 40" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <rect x="104" y="22" width="18" height="22" rx="5" fill="#ffd43b" stroke="#14183a" stroke-width="2.5"/>
+      <path d="M26 78 L10 102" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="9" cy="104" r="5" fill="#ffd43b" stroke="#14183a" stroke-width="2.5"/>
+      <path d="M32 38 Q32 10 60 10 Q88 10 88 38 Z" fill="#ffd43b" stroke="#14183a" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="22" y="36" width="76" height="8" rx="4" fill="#ffd43b" stroke="#14183a" stroke-width="3"/>
+      <circle cx="48" cy="62" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="72" cy="62" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="48" cy="63" r="2.2" fill="#14183a"/><circle cx="72" cy="63" r="2.2" fill="#14183a"/>
+      <path d="M50 84 H70" stroke="#14183a" stroke-width="3.5" stroke-linecap="round"/>
+      <rect x="36" y="96" width="48" height="18" rx="4" fill="#ffd43b" stroke="#14183a" stroke-width="2.5"/>
+      <text x="60" y="109.5" text-anchor="middle" font-family="monospace" font-weight="700" font-size="11" fill="#14183a">600px</text>
+    </symbol>
+  </defs>
+</svg>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- Capitã Script -->
+    <symbol id="s-script" viewBox="0 0 120 150">
+      <path d="M24 52 L6 134 Q60 148 114 134 L96 52 Z" fill="#ff9f43" stroke="#14183a" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M46 118 V138 M74 118 V138" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <rect x="26" y="34" width="68" height="86" rx="14" fill="#ffd43b" stroke="#14183a" stroke-width="3"/>
+      <path d="M26 78 L8 96" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M94 74 L113 58" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="7" cy="97" r="5" fill="#fff" stroke="#14183a" stroke-width="2.5"/>
+      <circle cx="114" cy="56" r="5" fill="#fff" stroke="#14183a" stroke-width="2.5"/>
+      <circle cx="46" cy="64" r="11" fill="#fff" stroke="#14183a" stroke-width="3"/>
+      <circle cx="74" cy="64" r="11" fill="#fff" stroke="#14183a" stroke-width="3"/>
+      <path d="M57 64 H63" stroke="#14183a" stroke-width="3"/>
+      <circle cx="47" cy="65" r="3.2" fill="#14183a"/><circle cx="75" cy="65" r="3.2" fill="#14183a"/>
+      <path d="M48 90 Q60 102 72 90" fill="none" stroke="#14183a" stroke-width="3.5" stroke-linecap="round"/>
+      <text x="60" y="114" text-anchor="middle" font-family="monospace" font-weight="700" font-size="16" fill="#14183a">JS</text>
+      <path d="M64 3 L46 30 H58 L51 47 L77 20 H64 L72 3 Z" fill="#ff6b81" stroke="#14183a" stroke-width="2.5" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Dom, a árvore -->
+    <symbol id="s-dom" viewBox="0 0 120 150">
+      <path d="M48 142 V98 Q48 92 54 92 H66 Q72 92 72 98 V142 Z" fill="#9b6b43" stroke="#14183a" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M60 106 L38 84 M60 112 L84 88" stroke="#14183a" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="34" cy="64" r="24" fill="#2fbf8a" stroke="#14183a" stroke-width="3"/>
+      <circle cx="86" cy="64" r="24" fill="#2fbf8a" stroke="#14183a" stroke-width="3"/>
+      <circle cx="60" cy="44" r="32" fill="#2fbf8a" stroke="#14183a" stroke-width="3"/>
+      <rect x="18" y="68" width="14" height="10" rx="3" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <rect x="90" y="72" width="14" height="10" rx="3" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <rect x="53" y="12" width="14" height="10" rx="3" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="49" cy="46" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="71" cy="46" r="5.5" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="50" cy="47" r="2.3" fill="#14183a"/><circle cx="72" cy="47" r="2.3" fill="#14183a"/>
+      <path d="M44 62 Q60 52 76 62 Q60 72 44 62 Z" fill="#fff" stroke="#14183a" stroke-width="2.5"/>
+    </symbol>
+    <!-- Sr. Reload -->
+    <symbol id="s-reload" viewBox="0 0 120 150">
+      <path d="M44 118 V142 M76 118 V142" stroke="#14183a" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="60" cy="70" r="48" fill="#e8506a" stroke="#14183a" stroke-width="3"/>
+      <path d="M26 50 A36 36 0 0 1 92 40" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+      <path d="M96 30 L98 54 L76 46 Z" fill="#fff" stroke="#14183a" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M34 68 L54 76 M86 68 L66 76" stroke="#14183a" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="46" cy="82" r="6" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="74" cy="82" r="6" fill="#fff" stroke="#14183a" stroke-width="2"/>
+      <circle cx="47" cy="84" r="2.4" fill="#14183a"/><circle cx="73" cy="84" r="2.4" fill="#14183a"/>
+      <path d="M40 102 Q60 118 80 102 Z" fill="#14183a" stroke="#14183a" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M50 105 V110 M60 106 V112 M70 105 V110" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main class="wrap">
+
+  <!-- ===================== CAPA ===================== -->
+  <header class="cover">
+    <div class="cover-text">
+      <span class="badge">HQ da aula · Dia 04 · Revisão</span>
+      <h1>A Árvore do Dom</h1>
+      <p class="lead">Capítulo extra de revisão: o que é a árvore DOM, como cada parte se chama, como o HTML e o JavaScript conversam por meio dela, e muito treino prático para fixar.</p>
+      <nav class="toc" aria-label="Partes">
+        <a href="#p1">1 · Os nomes da árvore</a>
+        <a href="#p2">2 · HTML, DOM e JS</a>
+        <a href="#p3">3 · Hora de treinar</a>
+        <a href="#p4">4 · Oficina de código</a>
+        <a href="#p5">5 · Ações JS e HTML</a>
+        <a href="#cola">Folha de cola</a>
+      </nav>
+    </div>
+    <div class="cover-art">
+      <svg class="chr w-md" viewBox="0 0 120 150" aria-hidden="true"><use href="#s-script"/></svg>
+      <svg class="chr w-xl" viewBox="0 0 120 150" role="img" aria-label="Dom, a árvore sábia"><use href="#s-dom"/></svg>
+      <svg class="chr tico sm" viewBox="0 0 120 76" aria-hidden="true"><use href="#s-tico"/></svg>
+    </div>
+  </header>
+
+  <!-- ===================== PARTE 1 ===================== -->
+  <section class="chapter" id="p1" aria-labelledby="p1-t">
+    <div class="chap-head"><span class="badge">Parte 1</span><h2 id="p1-t">Os nomes da árvore</h2></div>
+    <div class="row">
+      <div class="panel wide">
+        <p class="cap">Dom reuniu a turma debaixo da própria sombra: "Hoje vocês vão aprender a falar o idioma da árvore."</p>
+        <div class="art w4">
+          <div class="split">
+            <svg class="chr w-xl" viewBox="0 0 120 150" role="img" aria-label="Dom explicando"><use href="#s-dom"/></svg>
+            <div class="grow">
+              <div class="bubble">Tudo no DOM é um <strong>nó</strong> (em inglês, <em>node</em>). Cada pedacinho da página vira um nó: o documento, os elementos, os textos…</div>
+              <div class="bubble shout">A página é uma árvore de nós!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <p class="cap">Os três tipos de nó que você mais vai encontrar:</p>
+        <div class="art w3">
+          <div class="legend-row"><span class="it c4">Documento</span><span class="t"><code>document</code>: a raiz de toda a árvore e a porta de entrada do JavaScript.</span></div>
+          <div class="legend-row"><span class="it c1">Elemento</span><span class="t">Cada tag do HTML: <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;button&gt;</code>.</span></div>
+          <div class="legend-row"><span class="it c3">Texto</span><span class="t">O que está escrito dentro de um elemento. Cada texto é um nó.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="panel wide">
+        <p class="cap">A árvore tem parentesco, como uma família. Olhe este pedaço de página:</p>
+        <div class="art">
+          <div class="split">
+            <pre class="code grow">&lt;body&gt;
+  &lt;ul id="lista"&gt;
+    &lt;li&gt;Estudar&lt;/li&gt;
+    &lt;li&gt;Treinar&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;</pre>
+            <div class="grow" style="flex:1 1 260px">
+              <div class="treewrap"><ul class="tree">
+                <li><span class="tag">body</span> <em>← avô dos li</em>
+                  <ul><li><span class="tag">ul#lista</span> <em>← PAI dos dois li</em>
+                    <ul><li><span class="tag">li</span> <em>← FILHO do ul</em></li>
+                        <li><span class="tag">li</span> <em>← IRMÃO do outro li</em></li></ul></li></ul></li>
+              </ul></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <p class="cap">Resumindo a família:</p>
+        <div class="art w2">
+          <div class="bubble">Quem está <strong>dentro</strong> é filho. Quem tem o <strong>mesmo pai</strong> é irmão. Quem está acima de todos é a <strong>raiz</strong>.</div>
+          <svg class="chr w-lg" viewBox="0 0 120 150" aria-hidden="true"><use href="#s-dom"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title"><h3 style="font-size:30px">Cartões de vocabulário</h3><span class="mock-label" style="background:var(--paper); color:var(--ink); border-color:var(--line)">Português · inglês · como o JS chama</span></div>
+      <div class="gloss">
+        <div class="term"><h4>Nó</h4><span class="en">node</span><p>Qualquer peça da árvore: documento, elemento ou texto.</p></div>
+        <div class="term"><h4>Raiz</h4><span class="en">root · <code>document.documentElement</code></span><p>O elemento <code>html</code>, de onde tudo nasce. O <code>document</code> fica acima dele.</p></div>
+        <div class="term"><h4>Pai</h4><span class="en">parent · <code>parentElement</code></span><p>O elemento que contém outro.</p></div>
+        <div class="term"><h4>Filho</h4><span class="en">child · <code>children</code></span><p>Elemento que está diretamente dentro de outro.</p></div>
+        <div class="term"><h4>Irmão</h4><span class="en">sibling · <code>nextElementSibling</code></span><p>Elementos que dividem o mesmo pai.</p></div>
+        <div class="term"><h4>Ancestral</h4><span class="en">ancestor</span><p>Pai, avô, bisavô… tudo que está acima no caminho até a raiz.</p></div>
+        <div class="term"><h4>Descendente</h4><span class="en">descendant</span><p>Filhos, netos, bisnetos… tudo que está abaixo.</p></div>
+        <div class="term"><h4>Folha</h4><span class="en">leaf</span><p>Nó sem filhos, como um texto.</p></div>
+      </div>
+    </div>
+
+    <section class="lab" id="labA" aria-labelledby="labA-t">
+      <div class="lab-head"><h3 id="labA-t">Laboratório A · Explorador da árvore</h3><span class="hint">Clique em qualquer nó da árvore</span></div>
+      <div class="lab-body col">
+        <div class="split" style="align-items:stretch">
+          <div class="grow" style="flex:1 1 240px">
+            <div class="mock-label" style="margin-bottom:6px; background:var(--paper); color:var(--ink); border-color:var(--line)">O HTML</div>
+            <pre class="code">&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;DevTask&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Minhas tarefas&lt;/h1&gt;
+    &lt;ul id="lista"&gt;
+      &lt;li class="item"&gt;Estudar DOM&lt;/li&gt;
+      &lt;li class="item"&gt;Treinar JS&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;button id="btn"&gt;Adicionar&lt;/button&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+          </div>
+          <div class="grow" style="flex:1 1 280px">
+            <div class="mock-label" style="margin-bottom:6px; background:var(--paper); color:var(--ink); border-color:var(--line)">A árvore DOM do mesmo HTML</div>
+            <div class="treewrap tall"><ul class="tree" id="x-tree" aria-label="Árvore DOM"></ul></div>
+          </div>
+        </div>
+        <div class="key" aria-hidden="true"><span class="k-sel">nó escolhido</span><span class="k-p">pai</span><span class="k-c">filhos</span><span class="k-s">irmãos</span></div>
+        <div class="kv" id="x-info" aria-live="polite"></div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== PARTE 2 ===================== -->
+  <section class="chapter" id="p2" aria-labelledby="p2-t">
+    <div class="chap-head"><span class="badge">Parte 2</span><h2 id="p2-t">HTML, DOM e JavaScript</h2></div>
+    <div class="row">
+      <div class="panel">
+        <p class="cap">A relação mais importante da aula: planta e casa.</p>
+        <div class="art w3">
+          <div class="bubble">O arquivo HTML é a <strong>planta</strong>. O DOM é a <strong>casa construída</strong>. O JavaScript reforma a casa, mas não mexe na planta!</div>
+          <div class="flow">
+            <span class="it c4">index.html<small>a planta (texto no arquivo)</small></span>
+            <span class="ar">→</span>
+            <span class="it c1">DOM<small>a casa (na memória)</small></span>
+          </div>
+        </div>
+      </div>
+      <div class="panel wide">
+        <p class="cap">O caminho de um arquivo HTML até a tela, e onde o JavaScript entra.</p>
+        <div class="art">
+          <div class="flow">
+            <span class="it c4">1 · Arquivo<small>index.html é só texto</small></span>
+            <span class="ar">→</span>
+            <span class="it c2">2 · Navegador lê<small>transforma o texto em objetos</small></span>
+            <span class="ar">→</span>
+            <span class="it c1">3 · DOM<small>árvore de nós na memória</small></span>
+            <span class="ar">→</span>
+            <span class="it c3">4 · Tela<small>o que a pessoa vê</small></span>
+          </div>
+          <div class="flow" style="justify-content:center">
+            <span class="it c5" style="flex:0 1 340px">JavaScript<small>lê e altera o DOM (passo 3). A tela se atualiza sozinha.</small></span>
+          </div>
+          <div class="bubble">O JS fala com o <strong>DOM</strong>, nunca com o arquivo. É por isso que <code>document.getElementById</code> começa com <code>document</code>.</div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="panel">
+        <p class="cap">Sr. Reload aparece para provar a regra.</p>
+        <div class="art w2">
+          <div class="bubble shout">Recarreguei! O DOM voltou a ser igual ao arquivo!</div>
+          <div class="bubble r">Tudo que o JS tinha criado evaporou…</div>
+          <svg class="chr w-lg" viewBox="0 0 120 150" aria-hidden="true"><use href="#s-reload"/></svg>
+        </div>
+      </div>
+      <div class="panel wide">
+        <p class="cap">Dica de detetive: dois jeitos de espiar a página, dois resultados diferentes.</p>
+        <div class="art w4">
+          <div class="split">
+            <div class="grow"><div class="bubble"><strong>Exibir código-fonte</strong> (Ctrl+U) mostra o <em>arquivo</em> original, sem as mudanças do JS.</div></div>
+            <div class="grow"><div class="bubble"><strong>Inspecionar</strong> (F12, aba Elements) mostra o <em>DOM de agora</em>, com tudo o que o JS fez.</div></div>
+          </div>
+          <svg class="chr w-lg" viewBox="0 0 120 150" aria-hidden="true"><use href="#s-script"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <section class="lab" id="labB" aria-labelledby="labB-t">
+      <div class="lab-head"><h3 id="labB-t">Laboratório B · Arquivo × DOM</h3><span class="hint">O JS muda o DOM. O arquivo nunca muda.</span></div>
+      <div class="lab-body col">
+        <div class="btnrow">
+          <button type="button" class="btn-ghost" id="fx-add">JS: adicionar item</button>
+          <button type="button" class="btn-ghost" id="fx-title">JS: trocar o título</button>
+          <button type="button" class="btn-ghost" id="fx-del">JS: remover o último item</button>
+          <button type="button" class="btn-ghost" id="fx-reload">Recarregar a página (F5)</button>
+        </div>
+        <div class="split" style="align-items:stretch">
+          <div class="grow" style="flex:1 1 230px">
+            <div class="mock-label" style="margin-bottom:6px; background:var(--paper); color:var(--ink); border-color:var(--line)">index.html (o arquivo)</div>
+            <pre class="code">&lt;h1 id="fx-titulo"&gt;Minhas tarefas&lt;/h1&gt;
+&lt;ul id="fx-lista"&gt;
+  &lt;li&gt;Estudar DOM&lt;/li&gt;
+  &lt;li&gt;Treinar JS&lt;/li&gt;
+&lt;/ul&gt;</pre>
+          </div>
+          <div class="grow" style="flex:1 1 230px">
+            <div class="mock-label" style="margin-bottom:6px; background:var(--paper); color:var(--ink); border-color:var(--line)">A tela</div>
+            <div class="fx-page" id="fx-page"></div>
+          </div>
+          <div class="grow" style="flex:1 1 230px">
+            <div class="mock-label" style="margin-bottom:6px; background:var(--paper); color:var(--ink); border-color:var(--line)">O DOM (aba Elements)</div>
+            <div class="treewrap"><ul class="tree" id="fx-tree"></ul></div>
+          </div>
+        </div>
+        <p class="badge-no" id="fx-msg" aria-live="polite"></p>
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== PARTE 3 ===================== -->
+  <section class="chapter" id="p3" aria-labelledby="p3-t">
+    <div class="chap-head"><span class="badge">Parte 3</span><h2 id="p3-t">Hora de treinar</h2></div>
+    <div class="row">
+      <div class="panel wide">
+        <p class="cap">Quem só lê esquece. Quem pratica aprende. Dom montou quatro treinos.</p>
+        <div class="art w4">
+          <div class="split">
+            <svg class="chr w-xl" viewBox="0 0 120 150" aria-hidden="true"><use href="#s-dom"/></svg>
+            <div class="grow">
+              <div class="bubble shout">Treino 1: parentesco. Treino 2: complete o código.</div>
+              <div class="bubble">Treino 3: coloque o script em ordem. Treino 4: quiz relâmpago. Pode errar à vontade: errar aqui é grátis!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="lab" id="t1" aria-labelledby="t1-t">
+      <div class="lab-head"><h3 id="t1-t">Treino 1 · Parentesco na árvore</h3><span class="hint">Clique no nó que responde à pergunta</span></div>
+      <div class="lab-body">
+        <div class="lab-view">
+          <details>
+            <summary style="cursor:pointer; font-weight:700">Ver o HTML do CineDev</summary>
+            <pre class="code" style="margin-top:8px">&lt;header&gt;
+  &lt;h1&gt;CineDev&lt;/h1&gt;
+  &lt;nav&gt;&lt;a&gt;Início&lt;/a&gt; &lt;a&gt;Filmes&lt;/a&gt;&lt;/nav&gt;
+&lt;/header&gt;
+&lt;main&gt;
+  &lt;section id="catalogo"&gt;
+    &lt;article&gt;&lt;h2&gt;Matrix&lt;/h2&gt;&lt;p&gt;Ficção&lt;/p&gt;&lt;/article&gt;
+    &lt;article&gt;&lt;h2&gt;Amélie&lt;/h2&gt;&lt;p&gt;Comédia&lt;/p&gt;&lt;/article&gt;
+  &lt;/section&gt;
+&lt;/main&gt;</pre>
+          </details>
+          <div class="exercise">
+            <p class="qcount" id="t1-count"></p>
+            <p class="qtext" id="t1-q"></p>
+            <p class="fillfb" id="t1-fb" aria-live="polite"></p>
+            <div class="btnrow"><button type="button" class="btn-ghost" id="t1-next" hidden>Próxima</button><button type="button" class="btn-ghost" id="t1-redo" hidden>Refazer</button></div>
+          </div>
+        </div>
+        <div class="lab-view">
+          <div class="treewrap tall"><ul class="tree" id="t1-tree" aria-label="Árvore do CineDev"></ul></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lab" id="t2" aria-labelledby="t2-t">
+      <div class="lab-head"><h3 id="t2-t">Treino 2 · Complete o código</h3><span class="hint">Escolha a opção certa em cada lacuna</span></div>
+      <div class="lab-body col"><div class="cols2" id="t2-list"></div></div>
+    </section>
+
+    <section class="lab" id="t3" aria-labelledby="t3-t">
+      <div class="lab-head"><h3 id="t3-t">Treino 3 · Coloque o script em ordem</h3><span class="hint">Use as setas para reorganizar as linhas</span></div>
+      <div class="lab-body">
+        <div class="lab-view">
+          <div class="ord" id="t3-list" role="list" aria-label="Linhas do script"></div>
+          <div class="btnrow"><button type="button" class="btn-ghost" id="t3-check">Conferir</button><button type="button" class="btn-ghost" id="t3-reset">Embaralhar de novo</button></div>
+        </div>
+        <div class="lab-ctrl">
+          <p class="tip">Monte o script que adiciona um card ao enviar o formulário. Mais de uma ordem pode estar certa: o que importa é cada linha vir depois do que ela precisa.</p>
+          <div id="t3-fb" aria-live="polite" style="font-size:16px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lab" id="t4" aria-labelledby="t4-t">
+      <div class="lab-head"><h3 id="t4-t">Treino 4 · Quiz relâmpago</h3><span class="hint">10 perguntas sobre tudo que vimos</span></div>
+      <div class="lab-body col"><div id="t4-box"></div></div>
+    </section>
+  </section>
+
+  <!-- ===================== PARTE 4 ===================== -->
+  <section class="chapter" id="p4" aria-labelledby="p4-t">
+    <div class="chap-head"><span class="badge">Parte 4</span><h2 id="p4-t">Oficina de código</h2></div>
+    <div class="row">
+      <div class="panel wide">
+        <p class="cap">Agora é no editor! Cada desafio tem o HTML inicial. Tente escrever o JavaScript antes de abrir a solução.</p>
+        <div class="art w3">
+          <div class="split">
+            <svg class="chr w-xl" viewBox="0 0 120 150" aria-hidden="true"><use href="#s-script"/></svg>
+            <div class="grow">
+              <div class="bubble shout">Mão na massa!</div>
+              <div class="bubble">Regra da oficina: <strong>1)</strong> selecione, <strong>2)</strong> escute, <strong>3)</strong> altere. Sempre nessa ordem.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <article class="challenge">
+        <h3>Desafio 1 · Saudação</h3>
+        <p>Ao clicar no botão, o título deve mudar para <code>Olá, DOM!</code>.</p>
+        <pre class="code">&lt;h1 id="titulo"&gt;Olá!&lt;/h1&gt;
+&lt;button id="btn-saudar"&gt;Saudar&lt;/button&gt;
+&lt;script src="script.js"&gt;&lt;/script&gt;</pre>
+        <details><summary>Dica</summary><p>O evento do botão chama-se <code>click</code>. Para mudar o texto, use <code>textContent</code>.</p></details>
+        <details><summary>Solução</summary>
+          <pre class="code"><span class="cp">const</span> titulo = document.getElementById(<span class="cv">'titulo'</span>);
+<span class="cp">const</span> botao = document.getElementById(<span class="cv">'btn-saudar'</span>);
+
+botao.addEventListener(<span class="cv">'click'</span>, <span class="cp">function</span> () {
+  titulo.textContent = <span class="cv">'Olá, DOM!'</span>;
+});</pre></details>
+      </article>
+      <article class="challenge">
+        <h3>Desafio 2 · Contador de cliques</h3>
+        <p>Cada clique no botão soma 1 ao número que aparece na tela.</p>
+        <pre class="code">&lt;p&gt;Cliques: &lt;span id="numero"&gt;0&lt;/span&gt;&lt;/p&gt;
+&lt;button id="btn-mais"&gt;+1&lt;/button&gt;
+&lt;script src="script.js"&gt;&lt;/script&gt;</pre>
+        <details><summary>Dica</summary><p>Guarde o total em uma variável <code>let</code> fora da função. Dentro dela, some 1 e escreva o novo valor no <code>span</code>.</p></details>
+        <details><summary>Solução</summary>
+          <pre class="code"><span class="cp">const</span> numero = document.getElementById(<span class="cv">'numero'</span>);
+<span class="cp">const</span> botao = document.getElementById(<span class="cv">'btn-mais'</span>);
+<span class="cp">let</span> total = 0;
+
+botao.addEventListener(<span class="cv">'click'</span>, <span class="cp">function</span> () {
+  total = total + 1;
+  numero.textContent = total;
+});</pre></details>
+      </article>
+      <article class="challenge">
+        <h3>Desafio 3 · Catálogo do CineDev</h3>
+        <p>Ao enviar o formulário, crie um card com o título e o gênero dentro de <code>#catalogo</code>, sem recarregar a página. Não aceite título vazio. Limpe o formulário no final.</p>
+        <pre class="code">&lt;form id="form-filme"&gt;
+  &lt;input type="text" id="titulo" placeholder="Título do filme"&gt;
+  &lt;select id="genero"&gt;
+    &lt;option&gt;Ação&lt;/option&gt;&lt;option&gt;Comédia&lt;/option&gt;&lt;option&gt;Drama&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;button type="submit"&gt;Adicionar&lt;/button&gt;
+&lt;/form&gt;
+&lt;section id="catalogo"&gt;&lt;/section&gt;</pre>
+        <details><summary>Dica</summary><p>É a mesma receita do DevTask: selecionar, escutar o <code>submit</code>, <code>preventDefault()</code>, ler <code>.value</code>, criar, inserir e limpar.</p></details>
+        <details><summary>Solução</summary>
+          <pre class="code"><span class="cp">const</span> form = document.getElementById(<span class="cv">'form-filme'</span>);
+<span class="cp">const</span> inputTitulo = document.getElementById(<span class="cv">'titulo'</span>);
+<span class="cp">const</span> selectGenero = document.getElementById(<span class="cv">'genero'</span>);
+<span class="cp">const</span> catalogo = document.getElementById(<span class="cv">'catalogo'</span>);
+
+form.addEventListener(<span class="cv">'submit'</span>, <span class="cp">function</span> (event) {
+  event.preventDefault();
+  <span class="cp">const</span> titulo = inputTitulo.value.trim();
+  <span class="cp">if</span> (titulo === <span class="cv">''</span>) {
+    alert(<span class="cv">'Digite o título do filme!'</span>);
+    <span class="cp">return</span>;
+  }
+  <span class="cp">const</span> card = document.createElement(<span class="cv">'article'</span>);
+  card.innerHTML = <span class="cv">`&lt;h3&gt;${titulo}&lt;/h3&gt;&lt;p&gt;Gênero: ${selectGenero.value}&lt;/p&gt;`</span>;
+  catalogo.appendChild(card);
+  form.reset();
+  inputTitulo.focus();
+});</pre></details>
+      </article>
+      <article class="challenge">
+        <h3>Desafio 4 · Limpar a lista</h3>
+        <p>Ao clicar em Limpar, a lista deve ficar vazia e o parágrafo deve avisar <code>Nenhuma tarefa por aqui!</code>.</p>
+        <pre class="code">&lt;ul id="lista"&gt;
+  &lt;li&gt;Estudar DOM&lt;/li&gt;&lt;li&gt;Treinar JS&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p id="aviso"&gt;&lt;/p&gt;
+&lt;button id="btn-limpar"&gt;Limpar&lt;/button&gt;</pre>
+        <details><summary>Dica</summary><p>Atribuir uma string vazia ao <code>innerHTML</code> de um elemento esvazia tudo o que tem dentro dele.</p></details>
+        <details><summary>Solução</summary>
+          <pre class="code"><span class="cp">const</span> lista = document.getElementById(<span class="cv">'lista'</span>);
+<span class="cp">const</span> aviso = document.getElementById(<span class="cv">'aviso'</span>);
+
+document.getElementById(<span class="cv">'btn-limpar'</span>).addEventListener(<span class="cv">'click'</span>, <span class="cp">function</span> () {
+  lista.innerHTML = <span class="cv">''</span>;
+  aviso.textContent = <span class="cv">'Nenhuma tarefa por aqui!'</span>;
+});</pre></details>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================== PARTE 5 ===================== -->
+  <section class="chapter" id="p5" aria-labelledby="p5-t">
+    <div class="chap-head"><span class="badge">Parte 5</span><h2 id="p5-t">Ações entre JavaScript e HTML</h2></div>
+    <div class="row">
+      <div class="panel wide">
+        <p class="cap">Para fechar com chave de ouro, a Capitã Script mostra oito jeitos de o JavaScript mexer no HTML.</p>
+        <div class="art w3">
+          <div class="sfx y">KAPOW!</div>
+          <div class="split">
+            <svg class="chr w-xl" viewBox="0 0 120 150" role="img" aria-label="Capitã Script"><use href="#s-script"/></svg>
+            <div class="grow">
+              <div class="bubble shout">Aperte os botões e leia o código!</div>
+              <div class="bubble">O código de cada cartão é exatamente o que roda ali. Repare também no quadro escuro: ele mostra o HTML mudando no DOM.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="acts">
+      <!-- Ação 1 -->
+      <section class="act" aria-labelledby="a1-h">
+        <h3 id="a1-h">Ação 1 · Trocar o texto</h3>
+        <div class="act-body">
+          <p><code>textContent</code> lê e muda o texto de um elemento.</p>
+          <div class="stagebox"><h4 class="a-h" id="a1-t">Olá, mundo!</h4></div>
+          <div class="btnrow"><button type="button" class="btn-ghost" id="a1-b">Trocar texto</button><button type="button" class="btn-ghost" id="a1-r">Voltar</button></div>
+          <pre class="code">const titulo = document.getElementById('a1-t');
+titulo.textContent = 'Texto trocado pelo JS!';</pre>
+        </div>
+      </section>
+      <!-- Ação 2 -->
+      <section class="act" aria-labelledby="a2-h">
+        <h3 id="a2-h">Ação 2 · Mudar o estilo</h3>
+        <div class="act-body">
+          <p><code>style</code> muda o CSS de um elemento na hora.</p>
+          <div class="stagebox"><div id="a2-box" style="padding:12px 18px; border:3px solid #14183a; font-weight:700; background-color:#fff">Caixa estilizável</div></div>
+          <div class="btnrow">
+            <button type="button" class="btn-ghost" id="a2-cor">Colorir</button>
+            <button type="button" class="btn-ghost" id="a2-big">Aumentar fonte</button>
+            <button type="button" class="btn-ghost" id="a2-round">Arredondar</button>
+            <button type="button" class="btn-ghost" id="a2-reset">Limpar</button>
+          </div>
+          <pre class="code">const caixa = document.getElementById('a2-box');
+caixa.style.backgroundColor = '#ff6b81';
+caixa.style.fontSize = '24px';
+caixa.style.borderRadius = '999px';
+caixa.removeAttribute('style');   // limpa tudo</pre>
+          <div class="readout" id="a2-out" aria-live="polite"></div>
+        </div>
+      </section>
+      <!-- Ação 3 -->
+      <section class="act" aria-labelledby="a3-h">
+        <h3 id="a3-h">Ação 3 · Ligar e desligar classes</h3>
+        <div class="act-body">
+          <p><code>classList</code> adiciona, remove e alterna classes CSS: o jeito mais limpo de mudar o visual.</p>
+          <div class="stagebox"><div class="a3-card" id="a3-card">Cartão com classes</div></div>
+          <div class="btnrow">
+            <button type="button" class="btn-ghost" id="a3-tog">toggle('destaque')</button>
+            <button type="button" class="btn-ghost" id="a3-add">add('grande')</button>
+            <button type="button" class="btn-ghost" id="a3-rem">remove('grande')</button>
+          </div>
+          <pre class="code">const cartao = document.getElementById('a3-card');
+cartao.classList.toggle('destaque');
+cartao.classList.add('grande');
+cartao.classList.remove('grande');
+cartao.classList.contains('destaque'); // true ou false</pre>
+          <div class="readout" id="a3-out" aria-live="polite"></div>
+        </div>
+      </section>
+      <!-- Ação 4 -->
+      <section class="act" aria-labelledby="a4-h">
+        <h3 id="a4-h">Ação 4 · Mudar atributos</h3>
+        <div class="act-body">
+          <p>Atributos como <code>placeholder</code>, <code>disabled</code> e <code>type</code> também são do DOM.</p>
+          <div class="stagebox"><input type="password" id="a4-in" value="segredo123" placeholder="Senha" aria-label="Campo de senha"></div>
+          <div class="btnrow">
+            <button type="button" class="btn-ghost" id="a4-ph">Mudar placeholder</button>
+            <button type="button" class="btn-ghost" id="a4-dis">Desabilitar / habilitar</button>
+            <button type="button" class="btn-ghost" id="a4-type">Mostrar / ocultar senha</button>
+          </div>
+          <pre class="code">const campo = document.getElementById('a4-in');
+campo.setAttribute('placeholder', 'Digite aqui');
+campo.disabled = true;
+campo.type = 'text';   // mostra a senha</pre>
+          <div class="readout" id="a4-out" aria-live="polite"></div>
+        </div>
+      </section>
+      <!-- Ação 5 -->
+      <section class="act" aria-labelledby="a5-h">
+        <h3 id="a5-h">Ação 5 · Ocultar e remover</h3>
+        <div class="act-body">
+          <p><code>hidden</code> esconde, mas o elemento continua no DOM. <code>remove()</code> tira o elemento da árvore.</p>
+          <div class="stagebox" id="a5-stage"><p id="a5-msg" style="margin:0; font-weight:700">Mensagem secreta da Capitã</p></div>
+          <div class="btnrow">
+            <button type="button" class="btn-ghost" id="a5-hide">Ocultar</button>
+            <button type="button" class="btn-ghost" id="a5-show">Mostrar</button>
+            <button type="button" class="btn-ghost" id="a5-rem">Remover</button>
+            <button type="button" class="btn-ghost" id="a5-back">Recolocar</button>
+          </div>
+          <pre class="code">const msg = document.getElementById('a5-msg');
+msg.hidden = true;               // some da tela
+msg.hidden = false;              // volta
+msg.remove();                    // sai do DOM
+palco.appendChild(msg);          // volta para o DOM</pre>
+          <div class="readout" id="a5-out" aria-live="polite"></div>
+        </div>
+      </section>
+      <!-- Ação 6 -->
+      <section class="act" aria-labelledby="a6-h">
+        <h3 id="a6-h">Ação 6 · Reagir ao que a pessoa digita</h3>
+        <div class="act-body">
+          <p>O evento <code>input</code> dispara a cada letra digitada.</p>
+          <div class="stagebox">
+            <label for="a6-in" style="font-weight:700">Seu nome</label>
+            <input type="text" id="a6-in" autocomplete="off" placeholder="Digite aqui">
+            <p class="a6-out" id="a6-out">Digite seu nome…</p>
+            <span class="a6-count" id="a6-count">0/20</span>
+          </div>
+          <pre class="code">entrada.addEventListener('input', function () {
+  const nome = entrada.value;
+  saida.textContent = 'Olá, ' + nome + '!';
+  contador.textContent = nome.length + '/20';
+  contador.classList.toggle('erro', nome.length &gt; 20);
+});</pre>
+        </div>
+      </section>
+      <!-- Ação 7 -->
+      <section class="act" aria-labelledby="a7-h">
+        <h3 id="a7-h">Ação 7 · Criar e remover itens</h3>
+        <div class="act-body">
+          <p>Cada item novo nasce com o seu próprio botão de remover.</p>
+          <div class="stagebox">
+            <label for="a7-in" style="font-weight:700">Novo item</label>
+            <input type="text" id="a7-in" autocomplete="off" placeholder="Ex.: Estudar DOM">
+            <button type="button" class="btn-ghost" id="a7-add">Adicionar</button>
+            <ul id="a7-lista"></ul>
+          </div>
+          <pre class="code">const li = document.createElement('li');
+li.textContent = texto;
+
+const x = document.createElement('button');
+x.textContent = 'x';
+x.addEventListener('click', function () {
+  li.remove();
+});
+
+li.appendChild(x);
+lista.appendChild(li);</pre>
+        </div>
+      </section>
+      <!-- Ação 8 -->
+      <section class="act" aria-labelledby="a8-h">
+        <h3 id="a8-h">Ação 8 · Vários elementos de uma vez</h3>
+        <div class="act-body">
+          <p><code>querySelectorAll</code> devolve uma lista de elementos, e o <code>forEach</code> passa por cada um.</p>
+          <div class="stagebox"><div id="a8-stage"><span class="a8-fruta">Maçã</span><span class="a8-fruta">Uva</span><span class="a8-fruta">Pera</span><span class="a8-fruta">Manga</span></div></div>
+          <div class="btnrow">
+            <button type="button" class="btn-ghost" id="a8-paint">Pintar todos</button>
+            <button type="button" class="btn-ghost" id="a8-num">Numerar</button>
+            <button type="button" class="btn-ghost" id="a8-reset">Resetar</button>
+          </div>
+          <pre class="code">const nomes = ['Maçã', 'Uva', 'Pera', 'Manga'];
+const frutas = document.querySelectorAll('.a8-fruta');
+
+frutas.forEach(function (item, i) {
+  item.style.background = '#ffd43b';
+  item.textContent = (i + 1) + '. ' + nomes[i];
+});</pre>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===================== FOLHA DE COLA ===================== -->
+  <section class="chapter" id="cola" aria-labelledby="cola-t">
+    <div class="chap-head"><span class="badge">Final</span><h2 id="cola-t">Folha de cola da árvore</h2></div>
+    <div class="sheet">
+      <div class="sheet-card"><h3>Selecionar</h3><p><code>getElementById('id')</code>, <code>querySelector('.classe')</code>, <code>querySelectorAll('li')</code>.</p></div>
+      <div class="sheet-card"><h3>Navegar na árvore</h3><p><code>parentElement</code>, <code>children</code>, <code>firstElementChild</code>, <code>nextElementSibling</code>.</p></div>
+      <div class="sheet-card"><h3>Escutar eventos</h3><p><code>addEventListener('click' | 'submit' | 'input', função)</code>. Outros: <code>mouseover</code>, <code>keydown</code>.</p></div>
+      <div class="sheet-card"><h3>Ler valores</h3><p><code>.value</code> em campos, <code>.textContent</code> em textos.</p></div>
+      <div class="sheet-card"><h3>Alterar conteúdo</h3><p><code>textContent</code> para texto puro e <code>innerHTML</code> para HTML.</p></div>
+      <div class="sheet-card"><h3>Alterar aparência</h3><p><code>style.cor</code> para ajustes rápidos e <code>classList.toggle</code> para trocar o visual por classe.</p></div>
+      <div class="sheet-card"><h3>Alterar atributos</h3><p><code>setAttribute</code>, <code>disabled</code>, <code>hidden</code>, <code>type</code>.</p></div>
+      <div class="sheet-card"><h3>Criar e inserir</h3><p><code>createElement</code> e <code>appendChild</code>.</p></div>
+      <div class="sheet-card"><h3>Remover</h3><p><code>elemento.remove()</code> ou <code>innerHTML = ''</code> para esvaziar.</p></div>
+    </div>
+
+    <aside class="teacher" aria-labelledby="dica-t">
+      <h2 id="dica-t">Como usar esta revisão</h2>
+      <ul class="sched">
+        <li><b>15 min</b><span>Parte 1: percorra os cartões de vocabulário e use o Laboratório A. Peça para a turma prever o pai e os irmãos antes de clicar.</span></li>
+        <li><b>15 min</b><span>Parte 2: faça o Laboratório B projetado e abra o F12 ao lado para comparar com o Elements.</span></li>
+        <li><b>30 min</b><span>Parte 3: treinos em duplas. O Treino 1 pode virar competição de acertos.</span></li>
+        <li><b>30 min</b><span>Parte 4: oficina no editor. Cada aluno escolhe um desafio e mostra o resultado.</span></li>
+        <li><b>15 min</b><span>Parte 5: demonstre as ações e peça para os alunos combinarem duas delas em um mesmo exemplo.</span></li>
+      </ul>
+    </aside>
+
+    <p class="foot">Todos os personagens são originais, criados para esta aula.</p>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s)};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')};
+
+  /* ---------- árvore: rótulos e desenho ---------- */
+  function lbl(n){
+    if(n.nodeType===9) return 'document';
+    if(n.nodeType===3) return '"'+n.nodeValue+'"';
+    if(n.nodeType===1){
+      var s=n.tagName.toLowerCase();
+      if(n.id) s+='#'+n.id;
+      Array.prototype.forEach.call(n.classList,function(c){ s+='.'+c; });
+      return s;
+    }
+    return n.nodeName;
+  }
+  function treeInto(ul,node,onPick,map){
+    var li=document.createElement('li'), b=document.createElement(onPick?'button':'span');
+    if(onPick) b.type='button';
+    b.className='tag'+(node.nodeType===3?' txt':node.nodeType===9?' doc':'');
+    b.textContent=lbl(node); li.appendChild(b); ul.appendChild(li);
+    if(map) map.set(node,b);
+    if(onPick) b.addEventListener('click',function(){onPick(node,b);});
+    if(node.childNodes.length){
+      var sub=document.createElement('ul'); li.appendChild(sub);
+      Array.prototype.forEach.call(node.childNodes,function(c){treeInto(sub,c,onPick,map);});
+    }
+  }
+
+  /* ---------- LAB A: explorador ---------- */
+  var XH='<html><head><title>DevTask</title></head><body><h1>Minhas tarefas</h1><ul id="lista"><li class="item">Estudar DOM</li><li class="item">Treinar JS</li></ul><button id="btn">Adicionar</button></body></html>';
+  var xdoc=new DOMParser().parseFromString(XH,'text/html');
+  var xmap=new Map();
+  function kind(n){return n.nodeType===9?'Documento (nodeType 9)':n.nodeType===1?'Elemento (nodeType 1)':n.nodeType===3?'Nó de texto (nodeType 3)':'Outro';}
+  function pathOf(n){
+    var a=[], p=n.parentNode;
+    while(p){a.unshift(lbl(p)); p=p.parentNode;}
+    return a.length?a.join(' › '):'nenhum: é a raiz de tudo';
+  }
+  function elJs(n){
+    if(n.nodeType===9) return 'document';
+    if(n===xdoc.documentElement) return 'document.documentElement';
+    if(n===xdoc.body) return 'document.body';
+    if(n===xdoc.head) return 'document.head';
+    if(n.id) return "document.getElementById('"+n.id+"')";
+    if(n.classList.length){
+      var sel='.'+n.classList[0], all=xdoc.querySelectorAll(sel), idx=Array.prototype.indexOf.call(all,n);
+      return idx===0?"document.querySelector('"+sel+"')":"document.querySelectorAll('"+sel+"')["+idx+"]";
+    }
+    return "document.querySelector('"+n.tagName.toLowerCase()+"')";
+  }
+  function jsWay(n){ return n.nodeType===3 ? elJs(n.parentNode)+'.firstChild' : elJs(n); }
+  function xPick(n){
+    xmap.forEach(function(b){b.classList.remove('sel','rp','rc','rs');});
+    xmap.get(n).classList.add('sel');
+    if(n.parentNode) xmap.get(n.parentNode).classList.add('rp');
+    Array.prototype.forEach.call(n.childNodes,function(c){xmap.get(c).classList.add('rc');});
+    if(n.parentNode) Array.prototype.forEach.call(n.parentNode.childNodes,function(c){ if(c!==n) xmap.get(c).classList.add('rs'); });
+    var kids=Array.prototype.map.call(n.childNodes,lbl);
+    var rows=[
+      ['Nome',n.nodeName],
+      ['Tipo',kind(n)],
+      ['Pai',n.parentNode?lbl(n.parentNode):'nenhum: é a raiz de tudo'],
+      ['Filhos',kids.length?kids.join(', '):'nenhum: é uma folha'],
+      ['Irmão anterior',n.previousSibling?lbl(n.previousSibling):'nenhum'],
+      ['Próximo irmão',n.nextSibling?lbl(n.nextSibling):'nenhum'],
+      ['Ancestrais',pathOf(n)],
+      ['Como pegar no JS',jsWay(n)]
+    ];
+    $('#x-info').innerHTML=rows.map(function(r){
+      return '<div><b>'+r[0]+'</b><span>'+(r[0]==='Como pegar no JS'?'<code>'+esc(r[1])+'</code>':esc(r[1]))+'</span></div>';
+    }).join('');
+  }
+  treeInto($('#x-tree'),xdoc,xPick,xmap);
+  xPick(xdoc.getElementById('lista'));
+
+  /* ---------- LAB B: arquivo x DOM ---------- */
+  var FILE='<h1 id="fx-titulo">Minhas tarefas</h1><ul id="fx-lista"><li>Estudar DOM</li><li>Treinar JS</li></ul>';
+  var fxChanges=0, fxItem=0, fxTitleAlt=false;
+  function fxTree(){
+    var ul=$('#fx-tree'); ul.innerHTML='';
+    var root=document.createElement('li'), b=document.createElement('span');
+    b.className='tag doc'; b.textContent='body'; root.appendChild(b);
+    var sub=document.createElement('ul'); root.appendChild(sub); ul.appendChild(root);
+    Array.prototype.forEach.call($('#fx-page').childNodes,function(c){treeInto(sub,c,null,null);});
+  }
+  function fxMsg(t){
+    $('#fx-msg').innerHTML=t+'<br>Mudanças no DOM feitas pelo JS: <b>'+fxChanges+'</b> · Mudanças no arquivo index.html: <b>0</b>';
+  }
+  function fxRender(){ $('#fx-page').innerHTML=FILE; fxTree(); }
+  $('#fx-add').addEventListener('click',function(){
+    var li=document.createElement('li'); li.textContent='Novo item '+(++fxItem);
+    $('#fx-lista').appendChild(li); fxChanges++; fxTree();
+    fxMsg('O JS criou um li e o pendurou no ul. Veja o novo galho na árvore.');
+  });
+  $('#fx-title').addEventListener('click',function(){
+    fxTitleAlt=!fxTitleAlt;
+    $('#fx-titulo').textContent=fxTitleAlt?'Título trocado pelo JS':'Minhas tarefas';
+    fxChanges++; fxTree();
+    fxMsg('O JS mudou o nó de texto do h1. O arquivo continua com o texto original.');
+  });
+  $('#fx-del').addEventListener('click',function(){
+    var l=$('#fx-lista');
+    if(l.lastElementChild){ l.lastElementChild.remove(); fxChanges++; fxTree(); fxMsg('O JS removeu o último li da árvore.'); }
+    else fxMsg('A lista já está vazia. Recarregue a página para ver o DOM voltar ao arquivo.');
+  });
+  $('#fx-reload').addEventListener('click',function(){
+    fxChanges=0; fxItem=0; fxTitleAlt=false; fxRender();
+    fxMsg('Recarregou: o navegador jogou o DOM fora e construiu tudo de novo a partir do arquivo.');
+  });
+  fxRender();
+  fxMsg('Aperte os botões JS e compare a tela e a árvore com o arquivo.');
+
+  /* ---------- TREINO 1: parentesco ---------- */
+  var CD='<html><head><title>CineDev</title></head><body><header><h1>CineDev</h1><nav><a>Início</a><a>Filmes</a></nav></header><main><section id="catalogo"><article><h2>Matrix</h2><p>Ficção</p></article><article><h2>Amélie</h2><p>Comédia</p></article></section></main></body></html>';
+  var cd=new DOMParser().parseFromString(CD,'text/html');
+  var cNav=cd.querySelector('nav'), cHeader=cd.querySelector('header'), cMain=cd.querySelector('main');
+  var cArt=cd.querySelectorAll('article'), cH2b=cArt[1].querySelector('h2'), cSection=cd.getElementById('catalogo');
+  var cLinkText=cNav.firstChild.firstChild;
+  var Q1=[
+    {t:'Clique no elemento RAIZ do documento, o pai de head e body.',ok:function(n){return n===cd.documentElement;},why:'A raiz é o html. O document fica acima dele e é a porta de entrada do JavaScript.'},
+    {t:'Clique no PAI do h2 "Matrix".',ok:function(n){return n===cArt[0];},why:'O h2 está dentro do primeiro article, então o article é o pai dele.'},
+    {t:'Clique em um FILHO do nav.',ok:function(n){return n.parentNode===cNav&&n.nodeType===1;},why:'Os dois links a estão diretamente dentro do nav: são filhos dele.'},
+    {t:'Clique no IRMÃO do header (quem divide o mesmo pai com ele).',ok:function(n){return n===cMain;},why:'header e main são filhos do body, então são irmãos.'},
+    {t:'Clique no nó de TEXTO que diz "Início".',ok:function(n){return n===cLinkText;},why:'O texto dentro do link é um nó de texto, filho do elemento a.'},
+    {t:'Clique no AVÔ do h2 "Amélie" (o pai do pai).',ok:function(n){return n===cSection;},why:'O pai do h2 é o article, e o pai do article é a section#catalogo.'},
+    {t:'Clique no PRÓXIMO IRMÃO do primeiro article.',ok:function(n){return n===cArt[1];},why:'Os dois article são filhos da mesma section. O segundo vem logo depois do primeiro.'},
+    {t:'Clique no PAI do nav.',ok:function(n){return n===cHeader;},why:'O nav está dentro do header, então o header é o pai.'}
+  ];
+  var t1i=0, t1score=0, t1answered=false, t1map=new Map();
+  function t1Show(){
+    t1answered=false;
+    t1map.forEach(function(b){b.classList.remove('good','bad');});
+    $('#t1-count').textContent='Pergunta '+(t1i+1)+' de '+Q1.length+' · Acertos: '+t1score;
+    $('#t1-q').textContent=Q1[t1i].t;
+    $('#t1-fb').textContent='';
+    $('#t1-next').hidden=true; $('#t1-redo').hidden=true;
+  }
+  function t1Pick(n,b){
+    if(t1answered||t1i>=Q1.length) return;
+    t1answered=true;
+    var q=Q1[t1i], ok=q.ok(n);
+    b.classList.add(ok?'good':'bad');
+    if(ok) t1score++;
+    $('#t1-fb').textContent=(ok?'Acertou! ':'Quase! ')+q.why;
+    $('#t1-count').textContent='Pergunta '+(t1i+1)+' de '+Q1.length+' · Acertos: '+t1score;
+    if(t1i<Q1.length-1) $('#t1-next').hidden=false;
+    else{
+      $('#t1-q').textContent='Fim do treino: você acertou '+t1score+' de '+Q1.length+'.';
+      $('#t1-redo').hidden=false;
+    }
+  }
+  $('#t1-next').addEventListener('click',function(){t1i++;t1Show();});
+  $('#t1-redo').addEventListener('click',function(){t1i=0;t1score=0;t1Show();});
+  treeInto($('#t1-tree'),cd,t1Pick,t1map);
+  t1Show();
+
+  /* ---------- TREINO 2: complete o código ---------- */
+  var FILL=[
+    {t:'Selecionar por id',d:'Pegue o elemento que tem id "lista-tarefas".',tpl:"const lista = document.[[0]]('lista-tarefas');",
+      b:[{o:['querySelector','getElementById','getElement'],a:'getElementById'}],why:'getElementById recebe só o nome do id, sem #.'},
+    {t:'Selecionar por classe',d:'Pegue o primeiro elemento com a classe btn-excluir.',tpl:"const botao = document.[[0]]('[[1]]btn-excluir');",
+      b:[{o:['getElementByClass','querySelector','getElementById'],a:'querySelector'},{o:['#','(sem símbolo)','.'],a:'.'}],why:'querySelector usa seletores CSS: ponto para classe, # para id.'},
+    {t:'Escutar um evento',d:'Execute a função quando o formulário for enviado, sem recarregar a página.',tpl:"form.[[0]]('[[1]]', function (event) {\n  event.[[2]]();\n});",
+      b:[{o:['onListen','addEvent','addEventListener'],a:'addEventListener'},{o:['sumit','submit','send'],a:'submit'},{o:['preventDefault','stopDefault','prevent'],a:'preventDefault'}],why:'addEventListener + "submit" + preventDefault() é a trinca da aula.'},
+    {t:'Ler o que foi digitado',d:'Pegue o texto do campo e remova os espaços das pontas.',tpl:"const titulo = campo.[[0]].[[1]]();",
+      b:[{o:['text','value','innerText'],a:'value'},{o:['clean','cut','trim'],a:'trim'}],why:'.value guarda o que foi digitado e .trim() tira os espaços das pontas.'},
+    {t:'Criar e inserir',d:'Crie um article, coloque HTML dentro dele e pendure na lista.',tpl:"const card = document.[[0]]('article');\ncard.[[1]] = '<h3>Novo</h3>';\nlista.[[2]](card);",
+      b:[{o:['createNode','createElement','newElement'],a:'createElement'},{o:['innerHTML','html','textHTML'],a:'innerHTML'},{o:['appendNode','insertChild','appendChild'],a:'appendChild'}],why:'createElement cria, innerHTML preenche e appendChild insere.'},
+    {t:'Texto e classe',d:'Troque o texto do título e alterne a classe "destaque".',tpl:"titulo.[[0]] = 'Olá!';\ntitulo.classList.[[1]]('destaque');",
+      b:[{o:['content','textContent','textcontent'],a:'textContent'},{o:['flip','change','toggle'],a:'toggle'}],why:'textContent muda o texto e classList.toggle liga/desliga a classe.'}
+  ];
+  (function(){
+    var list=$('#t2-list');
+    FILL.forEach(function(ex,ei){
+      var box=document.createElement('div'); box.className='exercise';
+      var parts=ex.tpl.split(/\[\[(\d)\]\]/), html='';
+      parts.forEach(function(p,i){
+        if(i%2===0) html+=esc(p);
+        else{
+          var bl=ex.b[+p];
+          html+='<select class="blank" aria-label="lacuna '+(+p+1)+' do exercício '+(ei+1)+'" data-a="'+esc(bl.a)+'"><option value="">escolha…</option>'+bl.o.map(function(o){return '<option>'+esc(o)+'</option>';}).join('')+'</select>';
+        }
+      });
+      box.innerHTML='<h4>'+(ei+1)+' · '+ex.t+'</h4><p>'+ex.d+'</p><pre class="code">'+html+'</pre><div class="btnrow"><button type="button" class="btn-ghost">Conferir</button></div><p class="fillfb" aria-live="polite"></p>';
+      var sels=$$('select.blank',box), fb=$('.fillfb',box);
+      $('button',box).addEventListener('click',function(){
+        var right=0;
+        sels.forEach(function(s){
+          var ok=s.value===s.dataset.a;
+          s.classList.toggle('ok',ok); s.classList.toggle('no',!ok); if(ok) right++;
+        });
+        fb.textContent=right===sels.length?'Perfeito! '+ex.why:'Acertou '+right+' de '+sels.length+' lacunas. Tente de novo.';
+      });
+      sels.forEach(function(s){s.addEventListener('change',function(){s.classList.remove('ok','no');});});
+      list.appendChild(box);
+    });
+  })();
+
+  /* ---------- TREINO 3: ordenar o script ---------- */
+  var OL={
+    1:"const form = document.getElementById('form-tarefa');",
+    2:"form.addEventListener('submit', function (event) {",
+    3:"  event.preventDefault();",
+    4:"  const titulo = document.getElementById('titulo').value.trim();",
+    5:"  const card = document.createElement('article');",
+    6:"  card.textContent = titulo;",
+    7:"  document.getElementById('lista-tarefas').appendChild(card);",
+    8:"  form.reset();",
+    9:"});"
+  };
+  var CONS=[];
+  [3,4,5,6,7,8].forEach(function(x){
+    CONS.push([2,x,'As linhas de dentro da função precisam vir depois do addEventListener.']);
+    CONS.push([x,9,'O fechamento }); precisa ser a última linha.']);
+  });
+  CONS.push([1,2,'O formulário precisa ser selecionado antes de receber o evento.']);
+  CONS.push([4,6,'O título precisa ser lido antes de ser usado.']);
+  CONS.push([5,6,'O card precisa existir antes de receber o texto.']);
+  CONS.push([5,7,'O card precisa ser criado antes de ser inserido na lista.']);
+  CONS.push([7,8,'Limpe o formulário só depois de inserir o card.']);
+  var t3order=[5,8,2,9,4,1,7,3,6], t3status={};
+  function t3Draw(){
+    var box=$('#t3-list'); box.innerHTML='';
+    t3order.forEach(function(id,i){
+      var row=document.createElement('div'); row.className='ord-item'+(t3status[id]?' '+t3status[id]:''); row.setAttribute('role','listitem');
+      row.innerHTML='<span class="tx">'+esc(OL[id])+'</span>';
+      var up=document.createElement('button'), dn=document.createElement('button');
+      up.type=dn.type='button'; up.className=dn.className='mv';
+      up.textContent='↑'; dn.textContent='↓';
+      up.setAttribute('aria-label','Mover para cima: '+OL[id].trim()); dn.setAttribute('aria-label','Mover para baixo: '+OL[id].trim());
+      up.disabled=i===0; dn.disabled=i===t3order.length-1;
+      up.addEventListener('click',function(){ var t=t3order[i-1]; t3order[i-1]=t3order[i]; t3order[i]=t; t3status={}; t3Draw(); });
+      dn.addEventListener('click',function(){ var t=t3order[i+1]; t3order[i+1]=t3order[i]; t3order[i]=t; t3status={}; t3Draw(); });
+      row.appendChild(up); row.appendChild(dn); box.appendChild(row);
+    });
+  }
+  $('#t3-check').addEventListener('click',function(){
+    var pos={}, bad={}, msgs=[];
+    t3order.forEach(function(id,i){pos[id]=i;});
+    CONS.forEach(function(c){
+      if(pos[c[0]]>pos[c[1]]){ bad[c[0]]=bad[c[1]]=true; if(msgs.indexOf(c[2])<0) msgs.push(c[2]); }
+    });
+    t3status={};
+    t3order.forEach(function(id){t3status[id]=bad[id]?'bad':'good';});
+    t3Draw();
+    $('#t3-fb').innerHTML=msgs.length?'<b>Ainda não.</b><ul>'+msgs.map(function(m){return '<li>'+esc(m)+'</li>';}).join('')+'</ul>':'<b>Script na ordem certa! Cada linha vem depois do que ela precisa.</b>';
+  });
+  $('#t3-reset').addEventListener('click',function(){ t3order=[5,8,2,9,4,1,7,3,6]; t3status={}; $('#t3-fb').innerHTML=''; t3Draw(); });
+  t3Draw();
+
+  /* ---------- TREINO 4: quiz ---------- */
+  var QZ=[
+    {q:'Como se chama a representação em árvore da página, criada pelo navegador?',o:['CSS','DOM','HTTP','API'],a:1,e:'DOM significa Document Object Model: a página vira uma árvore de objetos.'},
+    {q:'Na árvore, um <code>&lt;li&gt;</code> que está dentro de um <code>&lt;ul&gt;</code> é...',o:['pai do ul','irmão do ul','filho do ul','raiz'],a:2,e:'Quem está diretamente dentro de outro elemento é filho dele.'},
+    {q:'Dois <code>&lt;li&gt;</code> dentro do mesmo <code>&lt;ul&gt;</code> são...',o:['irmãos','pai e filho','ancestrais','folhas'],a:0,e:'Elementos que têm o mesmo pai são irmãos.'},
+    {q:'Qual é o elemento raiz de uma página HTML?',o:['body','head','html','div'],a:2,e:'O elemento html é a raiz. O document fica acima dele e é a porta de entrada do JS.'},
+    {q:'O texto "Olá" dentro de <code>&lt;p&gt;Olá&lt;/p&gt;</code> é um...',o:['atributo','nó de texto','comentário','novo elemento'],a:1,e:'O texto escrito dentro de um elemento é um nó de texto, filho desse elemento.'},
+    {q:'Quando o JavaScript adiciona um card à lista, o que muda?',o:['O arquivo index.html','O DOM, na memória','O servidor','Nada'],a:1,e:'O JS altera o DOM. O arquivo HTML continua exatamente igual.'},
+    {q:'Qual é a diferença entre "Exibir código-fonte" e "Inspecionar"?',o:['Nenhuma, mostram a mesma coisa','O código-fonte mostra o arquivo original; Inspecionar mostra o DOM atual','Inspecionar mostra só o CSS','O código-fonte mostra o DOM atual'],a:1,e:'O código-fonte é o arquivo. Inspecionar (aba Elements) mostra o DOM com as mudanças do JS.'},
+    {q:'O que retorna <code>document.getElementById(\'#lista\')</code>?',o:['O elemento com id lista','Uma lista de elementos','null','Um erro de sintaxe'],a:2,e:'getElementById não usa #. Com o # ele procura um id chamado "#lista", que não existe, e retorna null.'},
+    {q:'Qual propriedade guarda o texto digitado em um campo de formulário?',o:['.text','.content','.value','.typed'],a:2,e:'Campos de formulário guardam o que foi digitado em .value.'},
+    {q:'No evento submit de um formulário, o que acontece se esquecermos o <code>preventDefault()</code>?',o:['Nada de especial','A página recarrega e o que o JS criou some','O formulário é apagado do HTML','O navegador fecha'],a:1,e:'Sem preventDefault, o navegador envia o formulário e recarrega a página: o DOM volta ao que está no arquivo.'}
+  ];
+  (function(){
+    var box=$('#t4-box'), i=0, score=0, done=false;
+    function show(){
+      var q=QZ[i]; done=false;
+      box.innerHTML='<p class="qcount">Pergunta '+(i+1)+' de '+QZ.length+'</p><p class="qtext">'+q.q+'</p><div class="opts"></div><p class="qfb" aria-live="polite"></p><div class="btnrow" style="margin-top:8px"></div>';
+      var opts=$('.opts',box);
+      q.o.forEach(function(t,k){
+        var b=document.createElement('button'); b.type='button'; b.className='opt'; b.textContent=t;
+        b.addEventListener('click',function(){
+          if(done) return; done=true;
+          var ok=k===q.a; if(ok) score++;
+          b.classList.add(ok?'ok':'no');
+          if(!ok) opts.children[q.a].classList.add('ok');
+          Array.prototype.forEach.call(opts.children,function(x){x.disabled=true;});
+          $('.qfb',box).innerHTML=(ok?'<b>Acertou!</b> ':'<b>Não foi dessa vez.</b> ')+q.e;
+          var nb=document.createElement('button'); nb.type='button'; nb.className='btn-ghost';
+          nb.textContent=i<QZ.length-1?'Próxima':'Ver resultado';
+          nb.addEventListener('click',function(){ if(i<QZ.length-1){i++;show();}else end(); });
+          $('.btnrow',box).appendChild(nb);
+        });
+        opts.appendChild(b);
+      });
+    }
+    function end(){
+      var msg=score>=9?'Dominando a árvore!':score>=6?'Muito bem! Revise os pontos que errou.':'Bom começo! Releia as Partes 1 e 2 e tente de novo.';
+      box.innerHTML='<p class="score">Você acertou '+score+' de '+QZ.length+'</p><p class="qtext">'+msg+'</p><div class="btnrow"><button type="button" class="btn-ghost" id="t4-redo">Refazer o quiz</button></div>';
+      $('#t4-redo').addEventListener('click',function(){i=0;score=0;show();});
+    }
+    show();
+  })();
+
+  /* ---------- AÇÕES ---------- */
+  /* 1 · textContent */
+  var a1Msgs=['Texto trocado pelo JS!','Agora com outro texto.','O DOM mudou, o HTML não!'], a1i=0;
+  $('#a1-b').addEventListener('click',function(){ $('#a1-t').textContent=a1Msgs[a1i%a1Msgs.length]; a1i++; });
+  $('#a1-r').addEventListener('click',function(){ $('#a1-t').textContent='Olá, mundo!'; a1i=0; });
+
+  /* 2 · style */
+  var a2Box=$('#a2-box'), a2Cores=['#ff6b81','#2fbf8a','#ffd43b','#3498db'], a2c=0, a2f=16;
+  function a2Out(){ var s=a2Box.getAttribute('style'); $('#a2-out').textContent='style="'+(s||'')+'"'; }
+  $('#a2-cor').addEventListener('click',function(){ a2Box.style.backgroundColor=a2Cores[a2c%a2Cores.length]; a2c++; a2Out(); });
+  $('#a2-big').addEventListener('click',function(){ a2f=a2f>=40?16:a2f+6; a2Box.style.fontSize=a2f+'px'; a2Out(); });
+  $('#a2-round').addEventListener('click',function(){ a2Box.style.borderRadius='999px'; a2Out(); });
+  $('#a2-reset').addEventListener('click',function(){ a2Box.removeAttribute('style'); a2f=16; a2c=0; a2Out(); });
+  a2Out();
+
+  /* 3 · classList */
+  var a3=$('#a3-card');
+  function a3Out(extra){ $('#a3-out').textContent='class="'+a3.className+'"'+(extra?'  ·  '+extra:''); }
+  $('#a3-tog').addEventListener('click',function(){ a3.classList.toggle('destaque'); a3Out("contains('destaque') → "+a3.classList.contains('destaque')); });
+  $('#a3-add').addEventListener('click',function(){ a3.classList.add('grande'); a3Out(); });
+  $('#a3-rem').addEventListener('click',function(){ a3.classList.remove('grande'); a3Out(); });
+  a3Out();
+
+  /* 4 · atributos */
+  var a4=$('#a4-in'), a4ph=false;
+  function a4Out(){ $('#a4-out').textContent=a4.outerHTML; }
+  $('#a4-ph').addEventListener('click',function(){ a4ph=!a4ph; a4.setAttribute('placeholder',a4ph?'Digite aqui':'Senha'); a4Out(); });
+  $('#a4-dis').addEventListener('click',function(){ a4.disabled=!a4.disabled; a4Out(); });
+  $('#a4-type').addEventListener('click',function(){ a4.type=a4.type==='password'?'text':'password'; a4Out(); });
+  a4Out();
+
+  /* 5 · hidden e remove */
+  var a5Msg=$('#a5-msg'), a5Stage=$('#a5-stage');
+  function a5Out(){ $('#a5-out').textContent='hidden: '+a5Msg.hidden+'  ·  está no DOM: '+(document.contains(a5Msg)?'sim':'não'); }
+  $('#a5-hide').addEventListener('click',function(){ a5Msg.hidden=true; a5Out(); });
+  $('#a5-show').addEventListener('click',function(){ a5Msg.hidden=false; a5Out(); });
+  $('#a5-rem').addEventListener('click',function(){ a5Msg.remove(); a5Out(); });
+  $('#a5-back').addEventListener('click',function(){ a5Stage.appendChild(a5Msg); a5Out(); });
+  a5Out();
+
+  /* 6 · evento input */
+  var a6In=$('#a6-in'), a6Out=$('#a6-out'), a6Count=$('#a6-count');
+  a6In.addEventListener('input',function(){
+    var nome=a6In.value;
+    a6Out.textContent=nome?'Olá, '+nome+'!':'Digite seu nome…';
+    a6Count.textContent=nome.length+'/20';
+    a6Count.classList.toggle('erro',nome.length>20);
+  });
+
+  /* 7 · criar e remover itens */
+  var a7Lista=$('#a7-lista'), a7In=$('#a7-in');
+  function a7Add(texto){
+    var li=document.createElement('li'), span=document.createElement('span');
+    span.textContent=texto; li.appendChild(span);
+    var x=document.createElement('button'); x.type='button'; x.textContent='x'; x.setAttribute('aria-label','Remover '+texto);
+    x.addEventListener('click',function(){ li.remove(); });
+    li.appendChild(x); a7Lista.appendChild(li);
+  }
+  function a7Go(){ var t=a7In.value.trim(); if(!t) return; a7Add(t); a7In.value=''; a7In.focus(); }
+  $('#a7-add').addEventListener('click',a7Go);
+  a7In.addEventListener('keydown',function(e){ if(e.key==='Enter') a7Go(); });
+  a7Add('Estudar DOM'); a7Add('Treinar eventos');
+
+  /* 8 · querySelectorAll + forEach */
+  var a8Nomes=['Maçã','Uva','Pera','Manga'];
+  function a8List(){ return document.querySelectorAll('.a8-fruta'); }
+  $('#a8-paint').addEventListener('click',function(){ a8List().forEach(function(item){ item.style.background='#ffd43b'; }); });
+  $('#a8-num').addEventListener('click',function(){ a8List().forEach(function(item,i){ item.textContent=(i+1)+'. '+a8Nomes[i]; }); });
+  $('#a8-reset').addEventListener('click',function(){ a8List().forEach(function(item,i){ item.textContent=a8Nomes[i]; item.style.background=''; }); });
+})();
+</script>
+
+</body></html>

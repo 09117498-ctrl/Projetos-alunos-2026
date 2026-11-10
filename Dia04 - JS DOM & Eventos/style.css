@@ -1,0 +1,198 @@
+/* ============================================================
+   1. RESET E ESTILOS GERAIS
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f4f6f9;
+  color: #333333;
+  padding: 20px;
+}
+
+/* ============================================================
+   2. CABEÇALHO
+   ============================================================ */
+header {
+  text-align: center;
+  margin-bottom: 25px;
+  background-color: #2c3e50;
+  color: #ffffff;
+  padding: 25px;
+  border-radius: 8px;
+}
+
+header h1 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+/* ============================================================
+   3. SEÇÕES E FORMULÁRIO (EVOLUÇÃO FLEXBOX)
+   ============================================================ */
+section {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 25px;
+}
+
+h2 {
+  font-size: 1.3rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+/* FORMULÁRIO COM FLEXBOX: Coloca os campos e o botão lado a lado */
+form {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end; /* Alinha a base dos campos com o botão */
+  flex-wrap: wrap; /* Quebra linha suavemente em telas menores */
+}
+
+/* Faz os grupos de input ocuparem espaço proporcional */
+form > div {
+  flex: 1;
+  min-width: 200px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+/* BOTÃO DE CADASTRAR */
+button[type="submit"] {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 11px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  height: 42px; /* Mantém a mesma altura dos inputs */
+}
+
+button[type="submit"]:hover {
+  background-color: #219150;
+}
+
+/* ============================================================
+   4. LISTA E CARDS DE TAREFAS (EVOLUÇÃO FLEXBOX)
+   ============================================================ */
+#lista-tarefas {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* CARD FLEXÍVEL: Separa as informações (esquerda) das ações (direita) */
+article {
+  background-color: #f8f9fa;
+  border-left: 5px solid #3498db;
+  padding: 15px 20px;
+  border-radius: 6px;
+  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+article h3 {
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+article p {
+  font-size: 0.9rem;
+  color: #555555;
+}
+
+/* CONTAINER DOS BOTÕES DO CARD */
+article .acoes {
+  display: flex;
+  gap: 8px;
+}
+
+/* Estilo dos Botões de Ação */
+article button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.btn-concluir {
+  background-color: #2980b9;
+  color: white;
+}
+
+.btn-concluir:hover {
+  background-color: #1c6391;
+}
+
+.btn-excluir {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-excluir:hover {
+  background-color: #c0392b;
+}
+
+/* ============================================================
+   5. RESPONSIVIDADE (MEDIA QUERIES - CELULAR)
+   ============================================================ */
+@media (max-width: 650px) {
+  /* No celular, o formulário volta a ficar empilhado */
+  form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  button[type="submit"] {
+    width: 100%;
+  }
+
+  /* No celular, o card alinha os botões abaixo do texto */
+  article {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  article .acoes {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ============================================================
+   6. RODAPÉ
+   ============================================================ */
+footer {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}

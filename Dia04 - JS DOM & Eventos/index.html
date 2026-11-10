@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTask - Meu Painel de Estudos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- CABEÇALHO DA APLICAÇÃO -->
+  <header>
+    <h1>DevTask 🚀</h1>
+    <p>Organize suas tarefas de programação e estudos</p>
+  </header>
+
+  <main>
+    <!-- FORMULÁRIO DE CADASTRO -->
+    <section>
+      <h2>Nova Tarefa</h2>
+      <form id="form-tarefa">
+        <div>
+          <label for="titulo">Título da Tarefa:</label>
+          <input type="text" id="titulo" placeholder="Ex: Estudar Selectors em CSS" required>
+        </div>
+
+        <div>
+          <label for="categoria">Categoria:</label>
+          <select id="categoria">
+            <option value="HTML">HTML</option>
+            <option value="CSS">CSS</option>
+            <option value="JavaScript">JavaScript</option>
+          </select>
+        </div>
+
+        <button type="submit">Cadastrar Tarefa</button>
+      </form>
+    </section>
+
+    <hr>
+
+    <!-- ÁREA DE LISTAGEM DAS TAREFAS -->
+    <section>
+      <h2>Minhas Tarefas</h2>
+      
+      <div id="lista-tarefas">
+        
+        <!-- Card Exemplo 1 -->
+        <article>
+          <div class="info">
+            <h3>Aprender Tags Estruturais do HTML</h3>
+            <p><strong>Categoria:</strong> HTML</p>
+            <p><strong>Status:</strong> Pendente</p>
+          </div>
+          <div class="acoes">
+            <button type="button" class="btn-concluir">Concluir</button>
+            <button type="button" class="btn-excluir">Excluir</button>
+          </div>
+        </article>
+
+        <!-- Card Exemplo 2 -->
+        <article>
+          <div class="info">
+            <h3>Criar a Primeira Estrutura do Projeto</h3>
+            <p><strong>Categoria:</strong> HTML</p>
+            <p><strong>Status:</strong> Concluído</p>
+          </div>
+          <div class="acoes">
+            <button type="button" class="btn-concluir">Concluir</button>
+            <button type="button" class="btn-excluir">Excluir</button>
+          </div>
+        </article>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- RODAPÉ -->
+  <footer>
+    <p>Curso Técnico em Informática para Internet • Front-end 2026</p>
+  </footer>
+
+  <!-- Inclusão do JavaScript do Dia 04 -->
+  <script src="script.js"></script>
+
+</body>
+</html>
