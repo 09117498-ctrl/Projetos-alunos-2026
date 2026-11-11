@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mural da Turma</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Mural da Turma</h1>
+    <button type="button" id="btn-tema">Alternar tema</button>
+  </header>
+
+  <main>
+    <section class="caixa">
+      <h2>Deixe um recado</h2>
+      <form id="form-recado">
+        <div class="form-linha">
+          <div class="campo">
+            <label for="nome">Seu nome</label>
+            <input type="text" id="nome" placeholder="Ex.: Ana">
+          </div>
+          <div class="campo">
+            <label for="humor">Seu humor hoje</label>
+            <select id="humor">
+              <option value="feliz">Feliz</option>
+              <option value="tranquilo">Tranquilo</option>
+              <option value="cansado">Cansado</option>
+            </select>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="mensagem">Recado</label>
+          <textarea id="mensagem" rows="3" placeholder="Escreva algo legal para a turma"></textarea>
+        </div>
+        <button type="submit">Publicar recado</button>
+      </form>
+    </section>
+
+    <section class="caixa">
+      <div class="topo-mural">
+        <h2>Recados (<span id="contador">0</span>)</h2>
+        <button type="button" id="btn-limpar">Limpar mural</button>
+      </div>
+      <div id="mural" class="mural"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Projeto das aulas 01 a 04 · HTML, CSS Flexbox e JavaScript no DOM</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

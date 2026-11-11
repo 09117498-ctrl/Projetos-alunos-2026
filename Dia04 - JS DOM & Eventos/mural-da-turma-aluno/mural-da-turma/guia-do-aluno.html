@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mural da Turma: Guia do Aluno</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;line-height:1.6;max-width:780px;margin:0 auto;padding:24px 16px 64px;color:#1c2340;background:#fff;font-size:18px}
+h1{color:#17609a} h2{border-top:3px solid #3498db;padding-top:18px;margin-top:40px;color:#17609a} h3{margin-top:30px;background:#e8f2fc;padding:8px 12px;border-left:6px solid #3498db;border-radius:4px}
+pre{background:#14183a;color:#e8ecff;padding:14px;border-radius:8px;overflow-x:auto;font-size:15px;line-height:1.5}
+code{background:#eef3fb;padding:1px 5px;border-radius:4px;font-size:.9em} pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%} td,th{border:2px solid #b9c4de;padding:8px;text-align:left} th{background:#e8f2fc}
+ul{padding-left:1.3em} li{margin:4px 0}
+</style></head><body>
+<h1>Mural da Turma: Guia do Aluno</h1>
+<p><em>Este é o </em><em>Guia do Aluno</em><em>. Quando um comentário nos arquivos <code>style.css</code> e <code>script.js</code> disser "veja o PASSO no Guia do Aluno", é este documento.</em></p>
+<h2>O que vamos fazer</h2>
+<p>Vamos construir um <strong>mural de recados</strong>, como aqueles quadros de aviso da escola.</p>
+<p>A pessoa escreve o nome, escolhe o humor do dia e escreve um recado. Ao clicar em <strong>Publicar recado</strong>, o recado aparece na tela dentro de um cartão colorido. Cada cartão tem um botão <strong>Remover</strong>.</p>
+<p>Você não vai começar do zero. A página já está quase pronta. Falta você fazer <strong>duas coisas</strong>:</p>
+<ol>
+<li>Arrumar a <strong>aparência</strong> (deixar tudo no lugar certo).</li>
+<li>Fazer a página <strong>funcionar</strong> (o que acontece quando clicamos nos botões).</li>
+</ol>
+<p><strong>Este guia não entrega o código pronto.</strong> Ele diz o que você precisa fazer, <strong>em qual aula e em qual arquivo</strong> está a resposta e dá uma pista. Tudo o que você precisa já foi visto nas aulas dos dias 03 e 04, que estão no repositório do curso. O código você encontra, entende e escreve.</p>
+<p>Faça com calma, <strong>um passo de cada vez</strong>. Errar faz parte de aprender.</p>
+<hr />
+<h2>Antes de começar</h2>
+<p><strong>1. Baixe as aulas e o projeto.</strong>
+Você já sabe fazer isso, é só para reforçar.</p>
+<ol>
+<li>Aperte a tecla <strong>Windows</strong>, digite <code>cmd</code> e aperte <strong>Enter</strong>. Abre a tela preta do prompt.</li>
+<li>Entre na pasta Documentos digitando <code>cd documents</code> e apertando <strong>Enter</strong>.</li>
+<li>Baixe o repositório digitando o comando abaixo e apertando <strong>Enter</strong>:</li>
+</ol>
+<pre><code>git clone https://github.com/09117498-ctrl/Projetos-alunos-2026
+</code></pre>
+<p>Se você <strong>já tem</strong> a pasta <code>Projetos-alunos-2026</code> no computador, não precisa baixar de novo. Só atualize: digite <code>cd Projetos-alunos-2026</code> e depois <code>git pull</code>.</p>
+<p><strong>2. Abra a pasta no VS Code.</strong>
+No VS Code, clique em <em>Arquivo</em> e depois em <em>Abrir Pasta</em>. Entre em <em>Documentos</em> e escolha a pasta <code>Projetos-alunos-2026</code>.</p>
+<p>No painel da esquerda você vai ver as pastas <code>Dia01</code>, <code>Dia02</code>, <code>Dia03</code>, <code>Dia04</code> e a pasta <code>mural-da-turma</code>. O seu trabalho é na pasta <code>mural-da-turma</code>.</p>
+<p><strong>3. Abra a página no navegador.</strong>
+Dentro da pasta <code>mural-da-turma</code>, clique com o botão direito no arquivo <code>index.html</code> e escolha <em>Open with Live Server</em>. Se não aparecer essa opção, abra a pasta pelo Explorador de Arquivos do Windows e dê dois cliques no arquivo <code>index.html</code>.</p>
+<p><strong>4. Conheça os 3 arquivos da pasta <code>mural-da-turma</code>.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Arquivo</th>
+<th>Para que serve</th>
+<th>Pense nele como...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index.html</code></td>
+<td>Os textos, campos e botões da página</td>
+<td>O <strong>esqueleto</strong> (já está pronto, não mexa)</td>
+</tr>
+<tr>
+<td><code>style.css</code></td>
+<td>As cores, o tamanho e a posição das coisas</td>
+<td>A <strong>roupa</strong> (você vai completar)</td>
+</tr>
+<tr>
+<td><code>script.js</code></td>
+<td>O que acontece quando alguém clica</td>
+<td>O <strong>cérebro</strong> (você vai completar)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>5. Regra de ouro: sempre que mudar algo, faça isto.</strong></p>
+<ol>
+<li>Aperte <strong>Ctrl + S</strong> no VS Code (isso salva o arquivo).</li>
+<li>Vá ao navegador e aperte <strong>F5</strong> (isso atualiza a página).</li>
+<li>Veja se deu certo.</li>
+</ol>
+<p>Se você esquecer de salvar, nada muda na página. Quando o arquivo tem uma bolinha branca na aba, é porque <strong>ainda não foi salvo</strong>.</p>
+<hr />
+<h2>Como procurar a resposta</h2>
+<p>Você <strong>não precisa pesquisar na internet</strong>. Todas as respostas estão nas aulas, dentro da pasta do repositório. Em cada passo, o guia diz o arquivo e o trecho onde olhar. Use estas ideias:</p>
+<ol>
+<li><strong>Os arquivos de código das aulas</strong> (<code>style.css</code> do Dia 03 e <code>Script.js</code> do Dia 04) têm comentários com títulos em letras maiúsculas, como <code>CARD FLEXÍVEL</code>. Abra o arquivo no VS Code e procure o título que o guia indicar.</li>
+<li><strong>As HQs das aulas</strong> são os arquivos <code>.html</code>. Para ler uma, abra a pasta pelo Explorador de Arquivos e dê dois cliques no arquivo. Ela abre no navegador. Dentro dela, use <strong>Ctrl + F</strong> para buscar uma palavra.</li>
+<li><strong>Buscar em todos os arquivos de uma vez:</strong> no VS Code, aperte <strong>Ctrl + Shift + F</strong>, digite a palavra da pista (por exemplo, <code>justify-content</code>) e veja em quais arquivos ela aparece.</li>
+<li><strong>Leia a pista com atenção.</strong> Ela traz as palavras-chave que você vai procurar.</li>
+<li><strong>Não copie às cegas.</strong> Ao achar um exemplo, troque os nomes pelos nomes deste projeto.</li>
+<li><strong>Tentou por uns 10 minutos e travou?</strong> Pergunte a um colega ou chame o professor. Ele pode dar uma pista extra.</li>
+</ol>
+<p>Dica: digite o código em vez de colar. Cuidado com maiúsculas, minúsculas e com os sinais <code>{ }</code>, <code>( )</code>, <code>;</code> e <code>'</code>. Uma letra diferente já faz o código parar de funcionar.</p>
+<p><strong>Nomes das pastas e arquivos que vão aparecer neste guia</strong></p>
+<table>
+<thead>
+<tr>
+<th>Apelido neste guia</th>
+<th>Onde está no repositório</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CSS do Dia 03</strong></td>
+<td><code>Dia03 - CSS Flexbox &amp; Responsividade</code> → <code>style.css</code></td>
+</tr>
+<tr>
+<td><strong>HQ do Flexbox</strong></td>
+<td><code>Dia03 - CSS Flexbox &amp; Responsividade</code> → <code>Flex e a Vila Empilhada.html</code></td>
+</tr>
+<tr>
+<td><strong>Script do Dia 04</strong></td>
+<td><code>Dia04 - JS DOM &amp; Eventos</code> → <code>Script.js</code></td>
+</tr>
+<tr>
+<td><strong>HQ do DOM</strong></td>
+<td><code>Dia04 - JS DOM &amp; Eventos</code> → <code>Script e a Vila Congelada.html</code></td>
+</tr>
+<tr>
+<td><strong>HQ da Árvore</strong></td>
+<td><code>Dia04 - JS DOM &amp; Eventos</code> → <code>A Árvore do Dom.html</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Parte A: a aparência (arquivo <code>style.css</code>)</h2>
+<p>Abra o arquivo <code>style.css</code> da pasta <code>mural-da-turma</code>. Dentro dele há 5 comentários escritos <strong>PASSO 1</strong>, <strong>PASSO 2</strong> e assim por diante. É ali que você vai trabalhar. (Um comentário é um texto que o computador ignora. Ele serve só para nos orientar.)</p>
+<p>Em cada passo: <strong>apague o comentário</strong> e escreva o CSS no lugar.</p>
+<h3>Passo 1: título e botão na mesma linha</h3>
+<p><strong>O que queremos:</strong> no topo (<code>header</code>), o título de um lado e o botão "Alternar tema" do outro, na mesma linha.</p>
+<p><strong>Onde procurar:</strong>
+- <strong>CSS do Dia 03</strong>, no trecho <code>CARD FLEXÍVEL</code>. A ideia é a mesma: uma coisa de um lado e outra do outro.
+- <strong>HQ do Flexbox</strong>, Capítulo 3 "O drama do card" e a "Folha de cola da Dona Flex" (<code>justify-content</code> e <code>align-items</code>).</p>
+<p><strong>Pista:</strong> você vai usar <strong>três</strong> propriedades: uma para ligar o Flexbox, uma para distribuir o espaço entre os itens e uma para alinhar os itens no meio, na vertical. Para "um em cada ponta", procure o valor que empurra o espaço <strong>entre</strong> os itens.</p>
+<p><strong>Como saber que deu certo:</strong> o título "Mural da Turma" fica à esquerda e o botão "Alternar tema" fica à direita.</p>
+<h3>Passo 2: os dois campos lado a lado</h3>
+<p><strong>O que queremos:</strong> os campos "Seu nome" e "Seu humor hoje" ficam um ao lado do outro. Eles estão dentro de um bloco chamado <code>.form-linha</code>.</p>
+<p><strong>Onde procurar:</strong>
+- <strong>CSS do Dia 03</strong>, no trecho <code>FORMULÁRIO COM FLEXBOX</code>.
+- <strong>HQ do Flexbox</strong>, Capítulo 2 "Pai, filhos e os dois eixos" e a "Folha de cola" (<code>gap</code>).</p>
+<p><strong>Pista:</strong> duas propriedades: a que liga o Flexbox e a que cria um espaço entre os itens. Use <code>12px</code> de espaço.</p>
+<p><strong>Como saber que deu certo:</strong> os dois campos aparecem lado a lado.</p>
+<h3>Passo 3: os recados um embaixo do outro</h3>
+<p><strong>O que queremos:</strong> quando os recados aparecerem, eles ficam em uma pilha, um embaixo do outro, no bloco <code>.mural</code>.</p>
+<p><strong>Onde procurar:</strong>
+- <strong>CSS do Dia 03</strong>, no trecho <code>4. LISTA E CARDS DE TAREFAS</code>.
+- <strong>HQ do Flexbox</strong>, Capítulo 2 e a "Folha de cola" (<code>flex-direction</code>).</p>
+<p><strong>Pista:</strong> três propriedades: ligar o Flexbox, mudar a <strong>direção</strong> para coluna e criar um espaço de <code>12px</code> entre os itens.</p>
+<p><strong>Como saber que deu certo:</strong> por enquanto nada muda. Você vai ver a pilha quando houver recados na tela, na Parte B.</p>
+<h3>Passo 4: o cartão do recado</h3>
+<p><strong>O que queremos:</strong> dentro do <code>.card</code>, o texto fica de um lado e o botão "Remover" do outro, centralizados na vertical.</p>
+<p><strong>Onde procurar:</strong> é parecido com o Passo 1! Releia o seu próprio código do Passo 1 e o trecho <code>CARD FLEXÍVEL</code> do <strong>CSS do Dia 03</strong>.</p>
+<p><strong>Pista:</strong> as mesmas três propriedades do Passo 1, mais um espaço de <code>12px</code> entre os itens.</p>
+<p><strong>Como saber que deu certo:</strong> também só aparece quando houver cartões.</p>
+<h3>Passo 5: funcionar no celular</h3>
+<p><strong>O que queremos:</strong> em telas pequenas (até 600 pixels de largura), o título e o botão do topo ficam um embaixo do outro, e os campos do formulário também.</p>
+<p><strong>Onde procurar:</strong>
+- <strong>CSS do Dia 03</strong>, no trecho <code>5. RESPONSIVIDADE (MEDIA QUERIES - CELULAR)</code>.
+- <strong>HQ do Flexbox</strong>, Capítulo 5 "Quando a tela encolhe" e Capítulo 6 "A Guarda da Tela".</p>
+<p><strong>Pista:</strong> escreva a regra que vale só para telas de <strong>até 600px de largura</strong> (<code>max-width</code>). Dentro dela, mude a <strong>direção</strong> do <code>header</code> e do <code>.form-linha</code> para coluna. Se sobrar um espaço estranho entre os campos, tire o <code>gap</code> do <code>.form-linha</code> dentro dessa regra. Escreva no final do arquivo.</p>
+<p><strong>Como saber que deu certo:</strong> diminua a largura da janela do navegador. Quando ficar bem estreita, o layout vira uma coluna.</p>
+<hr />
+<h2>Parte B: o funcionamento (arquivo <code>script.js</code>)</h2>
+<p>Abra o arquivo <code>script.js</code> da pasta <code>mural-da-turma</code>. Ele tem 8 comentários <strong>PASSO 1</strong> a <strong>PASSO 8</strong>. Escreva o código logo abaixo de cada comentário, <strong>sem apagar o resto do arquivo</strong>.</p>
+<p><strong>Palavras que vão aparecer:</strong></p>
+<ul>
+<li><strong>Elemento</strong>: cada pedaço da página, como um botão, um campo ou um título.</li>
+<li><strong>Evento</strong>: algo que a pessoa faz na página, como clicar.</li>
+<li><strong>Constante (<code>const</code>)</strong>: uma "caixinha com etiqueta" onde guardamos algo para usar depois.</li>
+</ul>
+<p><strong>Atenção aos nomes.</strong> Um passo usa o que o passo anterior criou. Por isso, use exatamente estes nomes de constantes (à direita está o <code>id</code> do elemento no <code>index.html</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Nome da constante</th>
+<th><code>id</code> no HTML</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>form</code></td>
+<td><code>form-recado</code></td>
+</tr>
+<tr>
+<td><code>inputNome</code></td>
+<td><code>nome</code></td>
+</tr>
+<tr>
+<td><code>selectHumor</code></td>
+<td><code>humor</code></td>
+</tr>
+<tr>
+<td><code>textoMensagem</code></td>
+<td><code>mensagem</code></td>
+</tr>
+<tr>
+<td><code>mural</code></td>
+<td><code>mural</code></td>
+</tr>
+<tr>
+<td><code>contador</code></td>
+<td><code>contador</code></td>
+</tr>
+<tr>
+<td><code>btnLimpar</code></td>
+<td><code>btn-limpar</code></td>
+</tr>
+<tr>
+<td><code>btnTema</code></td>
+<td><code>btn-tema</code></td>
+</tr>
+</tbody>
+</table>
+<p>Os passos 2 a 6 ficam <strong>dentro</strong> de um bloco que já existe no arquivo: aquele que começa com <code>form.addEventListener('submit', function (event) {</code> e termina com <code>});</code>. Escreva no lugar dos comentários, entre essas duas linhas.</p>
+<h3>Passo 1: apresentar os elementos ao JavaScript</h3>
+<p><strong>O que queremos:</strong> o JavaScript ainda não sabe quem é quem na página. Vamos "procurar" cada elemento pelo seu <code>id</code> e guardar em uma constante, usando os nomes da tabela acima.</p>
+<p><strong>Onde procurar:</strong>
+- <strong>Script do Dia 04</strong>, no trecho <code>1. SELEÇÃO DOS ELEMENTOS DO HTML</code>.
+- <strong>HQ do DOM</strong>, Capítulo 3 "A Árvore DOM".</p>
+<p><strong>Pista:</strong> são 8 linhas parecidas, uma para cada linha da tabela.</p>
+<p><strong>Como saber que deu certo:</strong> salve, atualize e aperte <strong>F12</strong> no navegador, depois clique em <em>Console</em>. Não pode haver mensagens em vermelho.</p>
+<h3>Passo 2: o que acontece quando clica em "Publicar recado"</h3>
+<p><strong>O que queremos:</strong> três coisas, nesta ordem:
+- (a) a página <strong>não</strong> pode recarregar;
+- (b) guardar o que a pessoa escreveu (nome, recado e humor), sem espaços sobrando no começo e no fim dos textos;
+- (c) se o nome ou o recado estiver vazio, mostrar um aviso e parar.</p>
+<p><strong>Onde procurar:</strong>
+- <strong>Script do Dia 04</strong>, no trecho <code>2. ESCUTAR O EVENTO DE SUBMIT DO FORMULÁRIO</code>. Ele faz exatamente essas três coisas.
+- <strong>HQ do DOM</strong>, Capítulo 4 "Ouvindo o clique" e Capítulo 5 "A fábrica de cards" (passos 1 e 2).</p>
+<p><strong>Pista:</strong> procure por "impedir o comportamento padrão", por "pegar o valor de um campo" (<code>.value</code>) e por "tirar espaços" (<code>trim</code>). Para o aviso, use <code>alert</code>. Para parar a função, use <code>return</code>. Aqui você tem <strong>dois</strong> textos para checar: use o sinal que significa "ou" (<code>||</code>).</p>
+<p><strong>Como saber que deu certo:</strong> salve, atualize, deixe tudo vazio e clique em <strong>Publicar recado</strong>. Deve aparecer um aviso e a página <strong>não</strong> deve recarregar.</p>
+<h3>Passo 3: criar o cartão</h3>
+<p><strong>O que queremos:</strong> criar um elemento do tipo <code>article</code> (o cartão) e guardar em uma constante chamada <code>card</code>. Depois, dar a ele duas classes: <code>card</code> e <code>humor-</code> seguida do humor escolhido (por exemplo, <code>humor-feliz</code>).</p>
+<p><strong>Onde procurar:</strong>
+- <strong>Script do Dia 04</strong>, no trecho <code>3. CRIAR O NOVO CARD DE TAREFA DINAMICAMENTE</code> (para criar o elemento).
+- <strong>HQ da Árvore</strong>, Parte 5, "Ação 3 · Ligar e desligar classes" (para as classes).</p>
+<p><strong>Pista:</strong> para juntar dois textos em um só, use o sinal <code>+</code>. O humor está guardado na constante que você criou no Passo 2. Na Ação 3, procure o comando que <strong>adiciona</strong> uma classe.</p>
+<p><strong>Como saber que deu certo:</strong> ainda não aparece nada. O cartão existe só na memória.</p>
+<h3>Passo 4: escrever dentro do cartão</h3>
+<p><strong>O que queremos:</strong> criar uma caixa (<code>div</code>) com a classe <code>info</code> e três elementos dentro dela:
+- um <code>h3</code> com o <strong>nome</strong> (constante <code>titulo</code>);
+- um <code>p</code> com o <strong>recado</strong> (constante <code>texto</code>);
+- um <code>small</code> com o texto "Humor: " e o humor escolhido (constante <code>detalhe</code>).</p>
+<p><strong>Onde procurar:</strong>
+- <strong>HQ da Árvore</strong>, Parte 5, "Ação 7 · Criar e remover itens": ela cria um elemento, escreve o texto nele e coloca dentro de outro.
+- <strong>HQ do DOM</strong>, Capítulo 5 "A fábrica de cards" e Laboratório 5 "textContent ou innerHTML?".</p>
+<p><strong>Pista:</strong> crie cada elemento, escreva o texto com <code>textContent</code> e depois coloque os três dentro da <code>div</code> com <code>appendChild</code>.</p>
+<p><strong>Como saber que deu certo:</strong> ainda não aparece nada. Falta o Passo 6.</p>
+<h3>Passo 5: o botão "Remover"</h3>
+<p><strong>O que queremos:</strong> criar um botão (constante <code>btnRemover</code>) do tipo <code>button</code>, com o texto "Remover" e a classe <code>btn-remover</code>. Quando alguém clicar nele, o cartão some e o número ao lado de "Recados" é atualizado.</p>
+<p><strong>Onde procurar:</strong>
+- <strong>HQ da Árvore</strong>, Parte 5, "Ação 7 · Criar e remover itens": o código dela cria um botão, escuta o clique e remove o item. É quase o mesmo!
+- <strong>HQ da Árvore</strong>, "Ação 4 · Mudar atributos" (para o <code>type</code>).
+- <strong>HQ da Árvore</strong>, "Ação 1 · Trocar o texto" (para escrever um número na página).
+- Para contar os cartões do mural: procure <code>children</code> nos cartões de vocabulário da Parte 1 da <strong>HQ da Árvore</strong> e <code>length</code> na "Ação 6 · Reagir ao que a pessoa digita".</p>
+<p><strong>Pista:</strong> dentro da função do clique, apague o <code>card</code>. Depois, escreva em <code>contador</code> quantos filhos o <code>mural</code> tem agora. Os cartões ficam <strong>dentro</strong> do mural, ou seja, são "filhos" dele.</p>
+<p><strong>Como saber que deu certo:</strong> ainda não aparece nada. Falta o Passo 6.</p>
+<h3>Passo 6: colocar o cartão na página</h3>
+<p><strong>O que queremos:</strong> agora o cartão aparece de verdade. Faça cinco coisas:
+- coloque a <code>info</code> e o <code>btnRemover</code> dentro do <code>card</code>;
+- coloque o <code>card</code> dentro do <code>mural</code>;
+- atualize o número em <code>contador</code>, do mesmo jeito do Passo 5;
+- limpe os campos do formulário;
+- leve o cursor de volta para o campo do nome.</p>
+<p><strong>Onde procurar:</strong> <strong>Script do Dia 04</strong>, nos trechos <code>4. ADICIONAR O NOVO CARD DENTRO DA LISTA</code> e <code>5. LIMPAR OS CAMPOS DO FORMULÁRIO E DAR FOCO NO INPUT</code>.</p>
+<p><strong>Pista:</strong> <code>appendChild</code>, a linha do contador que você escreveu no Passo 5, <code>reset()</code> no formulário e <code>focus()</code> no campo do nome.</p>
+<p><strong>Como saber que deu certo:</strong> salve, atualize, escreva um nome e um recado e clique em <strong>Publicar recado</strong>. Um cartão colorido deve aparecer e o número em "Recados" deve subir. Teste o botão <strong>Remover</strong>. Teste também os outros humores e veja a cor da borda mudar.</p>
+<h3>Passo 7: o botão "Limpar mural"</h3>
+<p><strong>O que queremos:</strong> ao clicar em "Limpar mural", todos os recados somem e a contagem volta para 0. Esse código fica <strong>fora</strong> do bloco do <code>submit</code>.</p>
+<p><strong>Onde procurar:</strong> <strong>HQ da Árvore</strong>, Parte 4 "Oficina de código", <strong>Desafio 4 · Limpar a lista</strong> (abra a <em>Dica</em> e a <em>Solução</em>) e a "Folha de cola da árvore", cartão "Remover".</p>
+<p><strong>Pista:</strong> escrever um texto vazio (<code>''</code>) no conteúdo do mural apaga tudo o que está dentro dele. Depois, atualize o <code>contador</code> do mesmo jeito dos passos anteriores.</p>
+<p><strong>Como saber que deu certo:</strong> publique alguns recados e clique em "Limpar mural".</p>
+<h3>Passo 8: o botão "Alternar tema"</h3>
+<p><strong>O que queremos:</strong> ao clicar em "Alternar tema", a página troca entre claro e escuro. O CSS já sabe pintar tudo de escuro quando o <code>body</code> tem a classe <code>escuro</code>.</p>
+<p><strong>Onde procurar:</strong> <strong>HQ da Árvore</strong>, Parte 5, "Ação 3 · Ligar e desligar classes".</p>
+<p><strong>Pista:</strong> nessa ação, procure o comando que funciona como um <strong>interruptor</strong>: liga a classe se ela não existe e desliga se ela existe. O elemento é o <code>body</code> da página (<code>document.body</code>) e a classe se chama <code>escuro</code>.</p>
+<p><strong>Como saber que deu certo:</strong> clique no botão: a página escurece. Clique de novo: ela volta ao normal.</p>
+<hr />
+<h2>Terminou? Confira</h2>
+<ul>
+<li>&#9744; Clicar em "Publicar recado" <strong>não</strong> recarrega a página.</li>
+<li>&#9744; Com nome ou recado vazio aparece um aviso e nenhum cartão é criado.</li>
+<li>&#9744; Depois de publicar, os campos ficam vazios.</li>
+<li>&#9744; O número ao lado de "Recados" sobe, desce e zera conforme os cartões.</li>
+<li>&#9744; A cor da borda muda de acordo com o humor.</li>
+<li>&#9744; "Remover" apaga só aquele cartão.</li>
+<li>&#9744; "Limpar mural" apaga todos.</li>
+<li>&#9744; "Alternar tema" troca entre claro e escuro.</li>
+<li>&#9744; Em janela estreita, o layout fica em coluna.</li>
+</ul>
+<hr />
+<h2>Não funcionou? Tente isto</h2>
+<ol>
+<li><strong>Você salvou?</strong> (Ctrl + S) E <strong>atualizou</strong> a página? (F5)</li>
+<li><strong>Aperte F12</strong> no navegador e clique em <em>Console</em>. Se houver uma mensagem em vermelho, leia o nome do arquivo e o número da linha. Ela diz onde está o problema.</li>
+<li><strong>Compare com o <code>Script.js</code> do Dia 04</strong>, letra por letra. Maiúsculas, minúsculas, aspas <code>' '</code>, chaves <code>{ }</code> e parênteses <code>( )</code> fazem diferença.</li>
+<li><strong>Volte um passo.</strong> Se você acabou de escrever algo e parou de funcionar, o erro quase sempre está nesse último pedaço.</li>
+<li><strong>Chame o professor</strong> e mostre a mensagem vermelha. Isso ajuda muito.</li>
+</ol>
+<hr />
+<h2>Desafios extras (só se sobrar tempo)</h2>
+<ol>
+<li>Mostre no cartão a <strong>hora</strong> em que o recado foi publicado. No VS Code, aperte <strong>Ctrl + Shift + F</strong> e busque por <code>toLocaleTimeString</code>: a <strong>HQ do DOM</strong> usa isso.</li>
+<li>Mostre quantos caracteres o recado já tem enquanto a pessoa digita (por exemplo, <code>12/100</code>). Veja a <strong>HQ da Árvore</strong>, Parte 5, "Ação 6 · Reagir ao que a pessoa digita".</li>
+</ol>
+<hr />
+<h2>Como entregar</h2>
+<p>Quando terminar, envie seu trabalho como o professor combinou, usando os comandos que você já conhece. No terminal do VS Code (menu <em>Terminal &gt; Novo Terminal</em>), digite um de cada vez, apertando Enter depois de cada linha:</p>
+<pre><code>git add .
+git commit -m &quot;Projeto Mural da Turma&quot;
+git push
+</code></pre>
+<ul>
+<li><code>git add .</code> separa os arquivos que você mudou.</li>
+<li><code>git commit -m "..."</code> salva uma versão, com um nome.</li>
+<li><code>git push</code> envia para o GitHub.</li>
+</ul></body></html>

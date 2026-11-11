@@ -1,0 +1,109 @@
+/* Mural da Turma - style.css */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f3f6fb;
+  color: #1c2340;
+}
+
+/* PASSO 1: O título e o botão ficam na mesma linha: um em cada ponta. Veja o
+   PASSO 1 no Guia do Aluno.
+   (digite seu código aqui e apague este comentário) */
+
+header {
+  padding: 16px 24px;
+  background: #3498db;
+  color: #fff;
+}
+
+h1, h2 { margin: 0; }
+
+main {
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.caixa {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+input, select, textarea {
+  padding: 8px;
+  border: 2px solid #b9c4de;
+  border-radius: 6px;
+  font: inherit;
+}
+
+button {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: #2fbf8a;
+  color: #fff;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.topo-mural {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* PASSO 2: Os campos "nome" e "humor" ficam um ao lado do outro. Veja o
+   PASSO 2 no Guia do Aluno.
+   (digite seu código aqui e apague este comentário) */
+
+/* PASSO 3: Os recados ficam um embaixo do outro. Veja o PASSO 3 no Guia do
+   Aluno.
+   (digite seu código aqui e apague este comentário) */
+
+/* PASSO 4: Em cada recado, o texto fica de um lado e o botão "Remover" do
+   outro. Veja o PASSO 4 no Guia do Aluno.
+   (digite seu código aqui e apague este comentário) */
+
+.card {
+  padding: 12px;
+  border-radius: 8px;
+  background: #eef3fb;
+  border-left: 8px solid #3498db;
+}
+
+.card h3 { margin: 0 0 4px; }
+.card p { margin: 0 0 4px; }
+.card small { color: #5a678f; }
+.humor-feliz { border-left-color: #2fbf8a; }
+.humor-tranquilo { border-left-color: #3498db; }
+.humor-cansado { border-left-color: #ff6b81; }
+.btn-remover { background: #ff6b81; }
+
+footer { text-align: center; padding: 16px; color: #5a678f; font-size: 14px; }
+
+/* Tema escuro (ligado pelo JavaScript com classList.toggle) */
+body.escuro { background: #12162b; color: #eef1ff; }
+body.escuro .caixa { background: #1d2342; }
+body.escuro .card { background: #2a3260; }
+body.escuro .card small, body.escuro footer { color: #b6bfe6; }
+
+/* PASSO 5: Em tela pequena (celular), tudo fica um embaixo do outro. Veja o
+   PASSO 5 no Guia do Aluno.
+   (digite seu código aqui e apague este comentário) */
