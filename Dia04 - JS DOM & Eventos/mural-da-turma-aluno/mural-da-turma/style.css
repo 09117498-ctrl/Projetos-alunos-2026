@@ -8,9 +8,11 @@ body {
   color: #1c2340;
 }
 
-/* PASSO 1: O título e o botão ficam na mesma linha: um em cada ponta. Veja o
-   PASSO 1 no Guia do Aluno.
-   (digite seu código aqui e apague este comentário) */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 header {
   padding: 16px 24px;
@@ -69,17 +71,23 @@ button {
   margin-bottom: 12px;
 }
 
-/* PASSO 2: Os campos "nome" e "humor" ficam um ao lado do outro. Veja o
-   PASSO 2 no Guia do Aluno.
-   (digite seu código aqui e apague este comentário) */
+.form-linha {
+  display: flex;
+  gap: 12px;
+}
 
-/* PASSO 3: Os recados ficam um embaixo do outro. Veja o PASSO 3 no Guia do
-   Aluno.
-   (digite seu código aqui e apague este comentário) */
+.mural {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-/* PASSO 4: Em cada recado, o texto fica de um lado e o botão "Remover" do
-   outro. Veja o PASSO 4 no Guia do Aluno.
-   (digite seu código aqui e apague este comentário) */
+.card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
 
 .card {
   padding: 12px;
@@ -104,6 +112,7 @@ body.escuro .caixa { background: #1d2342; }
 body.escuro .card { background: #2a3260; }
 body.escuro .card small, body.escuro footer { color: #b6bfe6; }
 
-/* PASSO 5: Em tela pequena (celular), tudo fica um embaixo do outro. Veja o
-   PASSO 5 no Guia do Aluno.
-   (digite seu código aqui e apague este comentário) */
+@media (max-width: 600px) {
+  .form-linha { flex-direction: column; gap: 0; }
+  header { flex-direction: column; gap: 8px; }
+}

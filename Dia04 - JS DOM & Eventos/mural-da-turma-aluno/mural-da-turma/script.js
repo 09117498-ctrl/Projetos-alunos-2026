@@ -1,43 +1,67 @@
 // Mural da Turma - script.js
 
-// PASSO 1: Apresentar ao JavaScript os elementos da página que vamos usar.
-// Veja o PASSO 1 no Guia do Aluno.
-// (digite seu código aqui)
-
+const form = document.getElementById('form-recado');
+const inputNome = document.getElementById('nome');
+const selectHumor = document.getElementById('humor');
+const textoMensagem = document.getElementById('mensagem');
+const mural = document.getElementById('mural');
+const contador = document.getElementById('contador');
+const btnLimpar = document.getElementById('btn-limpar');
+const btnTema = document.getElementById('btn-tema');
 
 form.addEventListener('submit', function (event) {
-  // PASSO 2: Quando clicar em Publicar: não recarregar a página, pegar o que a
-  // pessoa escreveu e avisar se estiver vazio. Veja o PASSO 2 no Guia do
-  // Aluno.
-  // (digite seu código aqui)
+  event.preventDefault();
 
+  const nome = inputNome.value.trim();
+  const mensagem = textoMensagem.value.trim();
+  const humor = selectHumor.value;
 
-  // PASSO 3: Criar o cartão do recado. Veja o PASSO 3 no Guia do Aluno.
-  // (digite seu código aqui)
+  if (nome === '' || mensagem === '') {
+    alert('Preencha o nome e o recado!');
+    return;
+  }
 
+  const card = document.createElement('article');
+  card.classList.add('card', 'humor-' + humor);
 
-  // PASSO 4: Escrever o nome, o recado e o humor dentro do cartão. Veja o
-  // PASSO 4 no Guia do Aluno.
-  // (digite seu código aqui)
+  const info = document.createElement('div');
+  info.classList.add('info');
 
+  const titulo = document.createElement('h3');
+  titulo.textContent = nome;
 
-  // PASSO 5: Criar o botão "Remover" e fazê-lo apagar o cartão e atualizar a
-  // contagem. Veja o PASSO 5 no Guia do Aluno.
-  // (digite seu código aqui)
+  const texto = document.createElement('p');
+  texto.textContent = mensagem;
 
+  const detalhe = document.createElement('small');
+  detalhe.textContent = 'Humor: ' + humor;
 
-  // PASSO 6: Colocar o cartão na página, atualizar a contagem e limpar o
-  // formulário. Veja o PASSO 6 no Guia do Aluno.
-  // (digite seu código aqui)
+  info.appendChild(titulo);
+  info.appendChild(texto);
+  info.appendChild(detalhe);
 
+  const btnRemover = document.createElement('button');
+  btnRemover.type = 'button';
+  btnRemover.textContent = 'Remover';
+  btnRemover.classList.add('btn-remover');
+  btnRemover.addEventListener('click', function () {
+    card.remove();
+    contador.textContent = mural.children.length;
+  });
+
+  card.appendChild(info);
+  card.appendChild(btnRemover);
+  mural.appendChild(card);
+  contador.textContent = mural.children.length;
+  form.reset();
+  inputNome.focus();
 });
 
-// PASSO 7: Fazer o botão "Limpar mural" apagar todos os recados. Veja o
-// PASSO 7 no Guia do Aluno.
-// (digite seu código aqui)
+btnLimpar.addEventListener('click', function () {
+  mural.innerHTML = '';
+  contador.textContent = mural.children.length;
+});
 
-
-// PASSO 8: Fazer o botão "Alternar tema" trocar entre claro e escuro. Veja o
-// PASSO 8 no Guia do Aluno.
-// (digite seu código aqui)
-
+btnTema.addEventListener('click', function () {
+  document.body.classList.toggle('escuro');
+});
